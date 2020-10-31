@@ -1,0 +1,7 @@
+node_modules/
+google-signin-demo/
+server-old/
+uploads/chat/*.*
+uploads/cv/*.*
+uploads/photography/*.*
+uploads/photographyChat/*.*
