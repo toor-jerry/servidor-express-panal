@@ -144,7 +144,7 @@ app.put('/:id', [checkToken, checkPrivileges], (req, res) => {
 // ==========================
 // Create a user
 // ==========================
-app.post('/', checkToken, (req, res) => {
+app.post('/', (req, res) => {
 
     const body = req.body;
     // delete body.password;
