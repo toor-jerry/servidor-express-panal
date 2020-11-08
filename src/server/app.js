@@ -1,7 +1,6 @@
 // Requires
 require('./config/config');
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
 const socketIO = require('socket.io');
@@ -32,16 +31,7 @@ app.use(require('./routes/index'));
 
 
 // Database connection
-mongoose.connect(process.env.URL_DB, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        useCreateIndex: true,
-        useFindAndModify: false
-    })
-    .then(db => console.log('DB \x1b[36m%s\x1b[0m', 'connected!!'))
-    .catch(err => {
-        throw new Error(err);
-    });
+require('./DataBase/connection');
 
 
 // Listen petitions

@@ -10,8 +10,8 @@ const fqaSchema = new Schema({
         unique: true,
         required: [true, "Question is required!"]
     },
-    answers: [ { type: Object } ]
+    answers: [{ type: Object }]
 });
 
-fqaSchema.plugin( uniqueValidator, { message: 'La propiedad "{PATH} debe ser única!!' } );
+fqaSchema.plugin(uniqueValidator, { message: 'La propiedad "{PATH} debe ser única!!' });
 module.exports = mongoose.model("FQA", fqaSchema);

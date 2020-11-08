@@ -11,7 +11,7 @@ process.env.PORT = process.env.PORT || 3000;
 // ==========================
 // Token Expiration Date
 // ==========================
-process.env.TOKEN_EXPIRATION = 60 * 60 * 24 * 365;
+process.env.TOKEN_EXPIRATION = '48h';
 
 // ==========================
 // SEED
