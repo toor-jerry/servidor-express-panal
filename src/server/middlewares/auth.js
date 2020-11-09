@@ -1,28 +1,20 @@
 const jwt = require('jsonwebtoken');
-
+const { response401 } = require('../utils/utils');
 
 // ==========================
 // Verif token - Headers
 // ==========================
 
-exports.checkToken = (req, res, next) => {
+const checkToken = (req, res, next) => {
 
     const token = req.get('Authorization');
 
     jwt.verify(token, process.env.SEED, (err, decoded) => {
 
-        if (err) {
-            return res.status(401).json({
-                ok: false,
-                message: 'Token invalid!!',
-                errors: err
-            });
-        }
+        if (err) return response401(res, 'Token invalid!!');
 
         req.user = decoded.user;
-
         next();
-
     });
 }
 
@@ -30,22 +22,14 @@ exports.checkToken = (req, res, next) => {
 // Verif token - URL
 // ==========================
 
-exports.checkTokenUrl = (req, res, next) => {
+const checkTokenUrl = (req, res, next) => {
 
     const token = req.query.Authorization;
 
     jwt.verify(token, process.env.SEED, (err, decoded) => {
 
-        if (err) {
-            return res.status(401).json({
-                ok: false,
-                message: 'Token invalid!!',
-                errors: err
-            });
-        }
-
+        if (err) return response401(res, 'Token invalid!!');
         req.user = decoded.user;
-
         next();
 
     });
@@ -55,59 +39,46 @@ exports.checkTokenUrl = (req, res, next) => {
 // Verif ENTERPRISE_ROLE
 // ==========================
 
-exports.checkEnterprise_Role = (req, res, next) => {
+const checkEnterprise_Role = (req, res, next) => {
 
     const user = req.user;
 
-    if ((user.role === 'ENTERPRISE_ROLE' && user._id === req.params.id) || user.role === 'ADMIN_ROLE') {
+    if ((user.role === 'ENTERPRISE_ROLE' && user._id === req.params.id) || user.role === 'ADMIN_ROLE')
         next();
-    } else {
-        return res.status(401).json({
-            ok: false,
-            err: {
-                message: 'User no auth'
-            }
-        });
-    }
+    else
+        return response401(res);
+}
+
+// ==========================
+// Verif ADMIN_ROLE
+// ==========================
+const checkAdmin_Role = (req, res, next) => {
+
+    const user = req.user;
+
+    if (user.role === 'ADMIN_ROLE')
+        next();
+    else
+        return response401(res);
 }
 
 // ==========================
 // Verif privileges
 // ==========================
 
-exports.checkPrivileges = (req, res, next) => {
+const checkPrivileges = (req, res, next) => {
 
     const user = req.user;
 
-    if (user._id === req.params.id || user.role === 'ADMIN_ROLE') {
+    if (user._id === req.params.id || user.role === 'ADMIN_ROLE')
         next();
-    } else {
-        return res.status(401).json({
-            ok: false,
-            err: {
-                message: 'User no auth'
-            }
-        });
-    }
+    else return response401(res);
 }
 
-
-// ==========================
-// Verif ADMIN_ROLE
-// ==========================
-
-exports.checkAdmin_Role = (req, res, next) => {
-
-    const user = req.user;
-
-    if (user.role === 'ADMIN_ROLE') {
-        next();
-    } else {
-        return res.status(401).json({
-            ok: false,
-            err: {
-                message: 'User no auth'
-            }
-        });
-    }
+module.exports = {
+    checkToken,
+    checkTokenUrl,
+    checkEnterprise_Role,
+    checkAdmin_Role,
+    checkPrivileges
 }

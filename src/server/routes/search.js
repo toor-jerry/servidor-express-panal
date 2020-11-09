@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const mdAuth = require('../middlewares/auth');
 
 const Employment = require('../models/employment');
-const FQA = require('../models/fqa');
+// const FQA = require('../models/fqa');
 const User = require('../models/user');
 const Chat = require('../models/chat');
 
@@ -58,7 +58,8 @@ app.get('/specific/:colection/:search', (req, res) => {
             promise = searchChat(regex, conversation);
             break;
         case 'fqas':
-            promise = searchFQAs(regex);
+            promise = searchChat(regex, conversation);
+            // promise = searchFQAs(regex);
             break;
 
         default:
@@ -186,26 +187,26 @@ const searchUsers = (regex) => {
 // Search FQAs
 // ==========================
 
-const searchFQAs = (regex) => {
+// const searchFQAs = (regex) => {
 
-    return new Promise((resolve, reject) => {
+//     return new Promise((resolve, reject) => {
 
-        FQA.find({}, 'question answer')
-            .or([{
-                'question': regex
-            }, {
-                'answer': regex
-            }])
-            .exec((err, fqas) => {
+//         FQA.find({}, 'question answer')
+//             .or([{
+//                 'question': regex
+//             }, {
+//                 'answer': regex
+//             }])
+//             .exec((err, fqas) => {
 
-                if (err) {
-                    reject('Error at find fqa', err);
-                } else {
-                    resolve(fqas);
-                }
-            });
-    });
-};
+//                 if (err) {
+//                     reject('Error at find fqa', err);
+//                 } else {
+//                     resolve(fqas);
+//                 }
+//             });
+//     });
+// };
 
 // ==========================
 // Search chat
