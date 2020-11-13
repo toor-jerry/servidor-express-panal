@@ -1,158 +1,42 @@
 const express = require('express');
 
-const jwt = require('jsonwebtoken');
+const { checkToken, checkAdmin_Role } = require('../middlewares/auth');
 
-const mdAuth = require('../middlewares/auth');
+const { Postulation } = require('../classes/postulation');
 
 const app = express();
-
-const Postulation = require('../models/postulation');
+const postulation = new Postulation();
 
 // ==========================
 // Get all postulation
 // ==========================
-app.get('/', (req, res) => {
+app.get('/', [checkToken, checkAdmin_Role], (req, res) => {
 
-    Postulation.find({}, (err, postulation) => {
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error charging postulation',
-                    errors: err
-                });
-            }
-
-            res.status(200).json({
-                ok: true,
-                postulation
-            });
-
-        });
+    postulation.findAll(res, from, limit);
 
 });
 
 // ==========================
-// Update postulation  mdAuth.checkToken,
+// Get postulation by id
 // ==========================
-
-app.put('/:id', (req, res) => {
-
-    const id = req.params.id;
-    const body = req.body;
-
-    Postulation.findById( id, (err, postulation) => {
-
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                message: 'Error find postulation',
-                errors: err
-            });
-        }
-
-        if ( !postulation ) {
-            if (err) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Postulation no exists!!',
-                    errors: { message: 'No exists a Postulation whith id' }
-                });
-            }
-        }
-
-        postulation.employment = body.employment;
-        postulation.user = body.user;
-        
-
-        postulation.save( (err, postulationUpdated) => {
-
-            if (err) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Error at update postulation',
-                    errors: err
-                });
-            }
-
-            res.status(201).json({
-                ok: true,
-                postulation: postulationUpdated
-            });
-
-        });
-
-    });
-    
-});
-
+app.get('/:postulation', checkToken, (req, res) => postulation.findById(res, req.params.postulation));
 
 // ==========================
-// Create a postulation mdAuth.checkToken,
+// Create a postulation
 // ==========================
-
-app.post('/',  (req, res) => {
-    
-    const body = req.body;
-
-    let postulation = new Postulation({
-            employment: body.employment,
-            user: body.user
-    });
-    
-    postulation.save( (err, postulationUpdated) => {
-    
-            if (err) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Error at create postulation',
-                    errors: err
-                });
-            }
-    
-            res.status(201).json({
-                ok: true,
-                postulation: postulationUpdated
-            });
-    
-        });
-
-});
+app.post('/', checkToken, (req, res) =>
+    postulation.create(res, {
+        employment: req.body.employment,
+        user: req.user._id
+    })
+);
 
 // ==========================
-// Delete a employment by Id mdAuth.checkToken,
+// Delete a employment by Id
 // ==========================
-
-app.delete('/:id',  (req, res) => {
-
-    const id = req.params.id;
-
-    Postulation.findByIdAndRemove(id, (err, postulationDeleted) => {
-
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                message: 'Error at delete postulation',
-                errors: err
-            });
-        }
-
-        if ( !postulationDeleted ) {
-            return res.status(400).json({
-                ok: false,
-                message: 'Not deleted postulation',
-                errors: { message: 'Not deleted postulation whitin Id' }
-            });
-        }
-    
-        res.status(200).json({
-            ok: true,
-            postulation: postulationDeleted 
-        });
-
-    });
-
-
-});
+app.delete('/:postulation', checkToken, (req, res) => postulation.delete(res, req.params.postulation, req.user._id));
 
 module.exports = app;
