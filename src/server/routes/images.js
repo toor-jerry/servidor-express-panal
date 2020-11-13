@@ -3,6 +3,8 @@ const { checkTokenUrl } = require('../middlewares/auth');
 const path = require('path');
 const fs = require('fs');
 
+const { response404 } = require('../utils/utils');
+
 const app = express();
 
 app.get('/:colection/:img', checkTokenUrl, (req, res) => {
@@ -15,10 +17,7 @@ app.get('/:colection/:img', checkTokenUrl, (req, res) => {
     if (fs.existsSync(pathImg)) {
         res.sendFile(pathImg);
     } else {
-        res.status(404).json({
-            ok: false,
-            message: 'Not found image!!'
-        });
+        response404(res);
     }
 
 

@@ -1,3 +1,6 @@
+const jwt = require('jsonwebtoken');
+
+
 const response200 = (res, data = undefined) => {
     return res.status(200).json({
         ok: true,
@@ -28,6 +31,22 @@ const response401 = (res, message = undefined, err = undefined) => {
     });
 }
 
+const response403 = (res, message = undefined, err = undefined) => {
+    return res.status(403).json({
+        ok: false,
+        message: message || 'Forbidden.',
+        errors: err
+    });
+}
+
+const response404 = (res, message = undefined, err = undefined) => {
+    return res.status(404).json({
+        ok: false,
+        message: message || 'Not Found.',
+        errors: err
+    });
+}
+
 const response500 = (res, err, message = undefined) => {
     return res.status(500).json({
         ok: false,
@@ -36,11 +55,20 @@ const response500 = (res, err, message = undefined) => {
     });
 }
 
+const createToken = (data) => jwt.sign({
+    user: data,
+}, process.env.SEED, {
+    expiresIn: process.env.TOKEN_EXPIRATION
+});
+
 
 module.exports = {
     response200,
     response201,
     response400,
     response401,
-    response500
+    response403,
+    response404,
+    response500,
+    createToken
 }

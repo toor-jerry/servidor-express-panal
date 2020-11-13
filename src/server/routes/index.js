@@ -2,12 +2,11 @@ const express = require('express');
 
 const app = express();
 
-
-const appRoutes = require('./app');
 const userRoutes = require('./user');
 const loginRoutes = require('./login');
-const chatRoutes = require('./chat');
-const connectionRoutes = require('./connection').app;
+const roomRoutes = require('./room');
+const messageRoutes = require('./message');
+const connectionRoutes = require('./connection');
 const employmentRoutes = require('./employment');
 const postulationRoutes = require('./postulation');
 const settingRoutes = require('./setting');
@@ -21,7 +20,8 @@ const imagesRoutes = require('./images');
 // Routes
 app.use('/API/user', userRoutes);
 app.use('/API/login', loginRoutes);
-app.use('/API/chat', chatRoutes);
+app.use('/API/room', roomRoutes);
+app.use('/API/message', messageRoutes);
 app.use('/API/connection', connectionRoutes);
 app.use('/API/employment', employmentRoutes);
 app.use('/API/search', searchRoutes);

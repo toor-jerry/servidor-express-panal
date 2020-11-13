@@ -3,12 +3,7 @@ const mongoose = require("mongoose");
 const uniqueValidator = require('mongoose-unique-validator');
 const Schema = mongoose.Schema;
 
-const chatSchema = new Schema({
-    id_conversation: {
-        type: String,
-        unique: true,
-        required: [true, "Conversation is required!"],
-    },
+const roomSchema = new Schema({
     name: {
         type: String
     },
@@ -30,6 +25,6 @@ const chatSchema = new Schema({
     }]
 });
 
-chatSchema.plugin(uniqueValidator, { message: 'La propiedad "{PATH} debe ser única!!' });
+roomSchema.plugin(uniqueValidator, { message: 'La propiedad "{PATH} debe ser única!!' });
 
-module.exports = mongoose.model("Chat", chatSchema);
+module.exports = mongoose.model("Room", roomSchema);

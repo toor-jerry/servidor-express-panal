@@ -32,52 +32,36 @@ app.get('/question/:id', (req, res) => {
 // ==========================
 // Get answer by Id
 // ==========================
-app.get('/:id', (req, res) => {
-
-    const id = req.params.id;
-    answer.findById(res, id);
-});
+app.get('/:id', (req, res) => answer.findById(res, req.params.id));
 
 // ==========================
 // Create a answer
 // ==========================
 
-app.post('/', checkToken, (req, res) => {
-
-    let body = req.body;
+app.post('/', checkToken, (req, res) =>
     answer.create(res, {
-        question: body.question,
-        answer: body.answer,
+        question: req.body.question,
+        answer: req.body.answer,
         user: req.user._id
-    });
-
-});
+    })
+);
 
 // ==========================
 // Update a answer
 // ==========================
-app.put('/:id', checkToken, (req, res) => {
-
-    const id_answer = req.params.id;
-    const user = req.user._id;
-    let body = req.body;
-    answer.update(res, id_answer, user, {
-        question: body.question,
-        answer: body.answer,
+app.put('/:id_answer', checkToken, (req, res) =>
+    answer.update(res, req.params.id_answer, req.user._id, {
+        question: req.body.question,
+        answer: req.body.answer,
         user: req.user._id
-    });
-
-});
+    })
+);
 
 // ==========================
 // Delete answer
 // ==========================
-app.delete('/:id', checkToken, (req, res) => {
-
-    const id_answer = req.params.id;
-    const user = req.user._id;
-    answer.delete(res, id_answer, user);
-
-});
+app.delete('/:id_answer', checkToken, (req, res) =>
+    answer.delete(res, req.params.id_answer, req.user._id)
+);
 
 module.exports = app;

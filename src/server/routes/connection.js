@@ -1,37 +1,25 @@
 const express = require('express');
 
-const mdAuth = require('../middlewares/auth');
+const { checkToken, checkPrivileges } = require('../middlewares/auth');
 
 const app = express();
 
-const Connection = require('../models/connection');
+const { Connection } = require('../classes/connection');
+
+connection = new Connection();
+
 
 // ==========================
-// Get all connections
+// Get all connections by user
 // ==========================
-app.get('/', mdAuth.checkToken, (req, res) => {
+app.get('/', [checkToken, checkPrivileges], (req, res) => {
 
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
+    const id = req.query.id || req.user._id;
 
-    Connection.find({})
-        .skip(from)
-        .limit(limit)
-        .exec((err, connections) => {
+    connection.findAll(res, id, from, limit);
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error charging connections',
-                    errors: err
-                });
-            }
-
-            res.status(200).json({
-                ok: true,
-                connections
-            });
-        });
 });
 
 
@@ -39,24 +27,17 @@ app.get('/', mdAuth.checkToken, (req, res) => {
 // Create a connection
 // ==========================
 
-app.post('/', mdAuth.checkToken, (req, res) => {
+app.post('/', [checkToken, checkPrivileges], (req, res) => {
 
-    const body = req.body;
-    registerConnection(body.user, req)
-        .then(msg => {
-            return res.status(201).json({
-                ok: true,
-                msg
-            });
-        })
-        .catch(err => {
-            if (err) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Error at save connection!!'
-                });
-            }
-        });
+    const user = req.query.id || req.user._id;
+    const { 'user-agent': user_agent } = req.headers;
+
+    connection.create(res, {
+        user,
+        user_agent,
+        ip_add: req.ip,
+        hostname: req.hostname
+    });
 });
 
 
@@ -64,55 +45,11 @@ app.post('/', mdAuth.checkToken, (req, res) => {
 // Delete connections
 // ==========================
 
-app.delete('/:id', mdAuth.checkToken, (req, res) => {
+app.delete('/', [checkToken, checkPrivileges], (req, res) => {
 
-    const id = req.params.id;
-    Connection.deleteMany({ user: id }, (err, status) => {
-
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                message: 'Error at delete connections!!',
-                errors: err
-            });
-        }
-
-        res.status(201).json({
-            ok: true,
-            status
-        });
-
-    });
+    const user = req.query.id || req.user._id;
+    connection.delete(res, user);
 
 });
 
-
-
-
-const registerConnection = async(user, req) => {
-    const ip_add = req.ip;
-    const { 'user-agent': user_agent } = req.headers;
-    const hostname = req.hostname;
-
-    let conn = new Connection({
-        user: user,
-        user_agent: user_agent,
-        ip_add: ip_add,
-        hostname: hostname
-    });
-
-    conn.save((err, connectionSaved) => {
-
-        if (err) {
-            throw new Error('Error at create connection!!')
-        } else {
-            return connectionSaved;
-        }
-
-    });
-}
-
-module.exports = {
-    app,
-    registerConnection
-};
+module.exports = app;

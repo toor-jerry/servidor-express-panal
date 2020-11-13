@@ -10,7 +10,6 @@ const mdAuth = require('../middlewares/auth');
 const app = express();
 
 const User = require('../models/user');
-const Chat = require('../models/chat');
 
 const SIZE_PHOTOGRAPHY = require('../config/config').SIZE_PHOTOGRAPHY;
 const SIZE_CHAT_PHOTOGRAPHY = require('../config/config').SIZE_CHAT_PHOTOGRAPHY;

@@ -2,7 +2,6 @@ const QuestionModel = require('../models/question');
 const AnswerModel = require('../models/answer');
 
 const { response500, response400, response200, response201 } = require('../utils/utils');
-const { deleteMany } = require('../models/question');
 
 class Question {
 

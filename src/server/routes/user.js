@@ -1,11 +1,33 @@
 const express = require('express');
 
 const { User } = require('../classes/user');
-const { checkToken, checkPrivileges } = require('../middlewares/auth');
+const { checkToken, checkPrivileges, checkAdmin_Role } = require('../middlewares/auth');
 
 const app = express();
 
 const user = new User();
+
+// ==========================
+// Get all users
+// ==========================
+app.get('/', [checkToken, checkAdmin_Role], (req, res) => {
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    user.findAll(res, from, limit);
+});
+
+// ==========================
+// Get all enterprises
+// ==========================
+app.get('/', checkToken, (req, res) => {
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    user.findEnterprises(res, from, limit);
+});
 
 // ==========================
 // Get all users
@@ -15,13 +37,16 @@ app.get('/', checkToken, (req, res) => {
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    user.findAll(res, from, limit);
+    user.findUsers(res, from, limit);
 });
 
 // ==========================
 // Get user by id
 // ==========================
-app.get('/:id', checkToken, (req, res) => user.findById(res, req.params.id));
+app.get('/byid', [checkToken, checkPrivileges], (req, res) => {
+    const id = req.query.id || req.user._id;
+    user.findById(res, id)
+});
 
 // ==========================
 // Get all contacts of user

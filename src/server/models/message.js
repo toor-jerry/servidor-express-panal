@@ -3,16 +3,18 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 const statesValids = {
-    values: ['READ', 'DELETED', 'SAVED'],
+    values: ['READ', 'SAVED'],
     message: '{VALUE} not role valid!!'
 };
 const messageSchema = new Schema({
-    id_conversation: {
-        type: String,
-        required: [true, "Conversation is required!"]
+    room: {
+        type: Schema.Types.ObjectId,
+        ref: 'Room',
+        required: [true, "Room is required!"]
     },
     sender: {
         type: Schema.Types.ObjectId,
+        ref: 'User',
         required: [true, "Sender is required!"]
     },
     message: {

@@ -1,99 +1,56 @@
 const express = require('express');
 
-const mdAuth = require('../middlewares/auth');
+const { checkToken, checkParticipantOnRoom } = require('../middlewares/auth');
+
+const { Message } = require('../classes/message');
 
 const app = express();
 
-const Message = require('../models/message');
+message = new Message();
 
 // ==========================
 // Get all messages
 // ==========================
-app.get('/:id_conversation', mdAuth.checkToken, (req, res) => {
+app.get('/:room', [checkToken, checkParticipantOnRoom], (req, res) => {
 
-    const id_conversation = req.params.id_conversation;
+    const room = req.params.room;
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    Contact.find({ id_conversation: id_conversation })
-        .skip(from)
-        .limit(limit)
-        .exec((err, messages) => {
+    message.findAll(res, room, from, limit);
+});
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error charging messages',
-                    errors: err
-                });
-            }
 
-            res.status(200).json({
-                ok: true,
-                messages
-            });
-        });
+// ==========================
+// Get message by id
+// ==========================
+app.get('/:room/:message', [checkToken, checkParticipantOnRoom], (req, res) => {
+
+    const room = req.params.room;
+    const id = req.params.message;
+
+    message.findById(res, room, id);
 });
 
 
 // ==========================
 // Create a message
 // ==========================
-
-app.post('/', mdAuth.checkToken, (req, res) => {
-
-    const body = req.body;
-
-    let message = new Message({
-        id_conversation: body.id_conversation,
-        sender: body.sender,
-        message: body.message
-    });
-
-    conn.save((err, messageSaved) => {
-
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                message: 'Error create msg',
-                errors: err
-            });
-        }
-
-        res.status(201).json({
-            ok: true,
-            message: messageSaved
-        });
-    });
-});
+app.post('/', [checkToken, checkParticipantOnRoom], (req, res) =>
+    message.create(res, {
+        room: req.body.room,
+        sender: req.user._id,
+        message: req.body.message
+    })
+);
 
 
 // ==========================
 // Delete message
 // ==========================
-
-app.delete('/:id', mdAuth.checkToken, (req, res) => {
-
-    const id = req.params.id;
-
-    Message.deleteOne(id, (err, status) => {
-
-        if (err) {
-            return res.status(500).json({
-                ok: false,
-                message: 'Error at delete message!!',
-                errors: err
-            });
-        }
-
-        res.status(201).json({
-            ok: true,
-            status
-        });
-
-    });
-
-});
+app.delete('/:room/:message', [checkToken, checkParticipantOnRoom], (req, res) =>
+    message.delete(res, req.params.room, req.user._id, req.params.message)
+);
 
 
 module.exports = app;

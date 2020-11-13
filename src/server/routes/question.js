@@ -1,6 +1,6 @@
 const express = require('express');
 
-const { checkToken } = require('../middlewares/auth');
+const { checkToken, checkPrivileges } = require('../middlewares/auth');
 
 const app = express();
 
@@ -20,50 +20,34 @@ app.get('/', (req, res) => {
 // ==========================
 // Get question by Id
 // ==========================
-app.get('/:id', (req, res) => {
-
-    const id = req.params.id;
-    question.findById(res, id);
-});
+app.get('/:id_question', (req, res) => question.findById(res, req.params.id_question));
 
 // ==========================
 // Create a question
 // ==========================
 
-app.post('/', checkToken, (req, res) => {
-
-    let body = req.body;
+app.post('/', checkToken, (req, res) =>
     question.create(res, {
-        question: body.question,
+        question: req.body.question,
         user: req.user._id
-    });
-
-});
+    })
+);
 
 // ==========================
 // Update a question
 // ==========================
-app.put('/:id', checkToken, (req, res) => {
-
-    const id_question = req.params.id;
-    const user = req.user._id;
-    let body = req.body;
-    question.update(res, id_question, user, {
+app.put('/:id_question', [checkToken, checkPrivileges], (req, res) =>
+    question.update(res, req.params.id_question, req.user._id, {
         question: body.question,
         user: req.user._id
-    });
-
-});
+    })
+);
 
 // ==========================
 // Delete question
 // ==========================
-app.delete('/:id', checkToken, (req, res) => {
-
-    const id_question = req.params.id;
-    const user = req.user._id;
-    question.delete(res, id_question, user);
-
-});
+app.delete('/:id', [checkToken, checkPrivileges], (req, res) =>
+    question.delete(res, req.params.id, req.user._id)
+);
 
 module.exports = app;

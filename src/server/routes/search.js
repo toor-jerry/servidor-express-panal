@@ -6,7 +6,7 @@ const mdAuth = require('../middlewares/auth');
 const Employment = require('../models/employment');
 // const FQA = require('../models/fqa');
 const User = require('../models/user');
-const Chat = require('../models/chat');
+const Room = require('../models/room');
 
 const app = express();
 
@@ -54,18 +54,18 @@ app.get('/specific/:colection/:search', (req, res) => {
         case 'users':
             promise = searchUsers(regex);
             break;
-        case 'chat':
-            promise = searchChat(regex, conversation);
+        case 'room':
+            promise = searchRoom(regex, conversation);
             break;
         case 'fqas':
-            promise = searchChat(regex, conversation);
+            promise = searchRoom(regex, conversation);
             // promise = searchFQAs(regex);
             break;
 
         default:
             return res.status(400).json({
                 ok: false,
-                message: 'Find types: employments, users, fqas and chat',
+                message: 'Find types: employments, users, fqas and room',
                 error: { message: 'Invalid colection!' }
             });
             break;
@@ -209,10 +209,10 @@ const searchUsers = (regex) => {
 // };
 
 // ==========================
-// Search chat
+// Search room
 // ==========================
 
-const searchChat = (regex, conversation) => {
+const searchRoom = (regex, conversation) => {
 
     return new Promise((resolve, reject) => {
 
@@ -220,12 +220,12 @@ const searchChat = (regex, conversation) => {
             reject('Bad request, conversation null');
         }
 
-        Chat.find({ id_conversation: conversation, message: regex })
+        Room.find({ id_conversation: conversation, message: regex })
             .and({ status: { $ne: 'DELETED' } })
             .exec((err, messages) => {
 
                 if (err) {
-                    reject('Error at find chat', err);
+                    reject('Error at find room', err);
                 } else {
                     resolve(messages);
                 }

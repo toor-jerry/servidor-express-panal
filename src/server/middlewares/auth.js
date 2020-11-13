@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const { response401 } = require('../utils/utils');
+const { response401, response500 } = require('../utils/utils');
+const RoomModel = require('../models/room');
 
 // ==========================
 // Verif token - Headers
@@ -65,14 +66,40 @@ const checkAdmin_Role = (req, res, next) => {
 // ==========================
 // Verif privileges
 // ==========================
-
 const checkPrivileges = (req, res, next) => {
 
     const user = req.user;
-
-    if (user._id === req.params.id || user.role === 'ADMIN_ROLE')
+    if ((user._id === req.params.id) || (user._id === req.query.id) || (user.role === 'ADMIN_ROLE'))
         next();
     else return response401(res);
+}
+
+// ==========================
+// Verif participant in room
+// ==========================
+const checkParticipantOnRoom = (req, res, next) => {
+
+    let id = req.params.room || req.body.room;
+
+    const user = req.user._id;
+    RoomModel.findOne({ _id: id, $or: [{ admins: { $in: user } }, { participants: { $in: user } }] }, (err, room) => {
+        if (err) return response500(res, err);
+        if (!room) return response401(res);
+        next();
+    });
+}
+
+// ==========================
+// Verif privileges on room
+// ==========================
+const checkPrivilegesOnRoom = (req, res, next) => {
+
+    const user = req.user._id;
+    RoomModel.findOne({ _id: req.params.room, admins: { $in: user } }, (err, room) => {
+        if (err) return response500(res, err);
+        if (!room) return response401(res);
+        next();
+    });
 }
 
 module.exports = {
@@ -80,5 +107,7 @@ module.exports = {
     checkTokenUrl,
     checkEnterprise_Role,
     checkAdmin_Role,
-    checkPrivileges
+    checkPrivileges,
+    checkParticipantOnRoom,
+    checkPrivilegesOnRoom
 }

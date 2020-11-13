@@ -30,6 +30,52 @@ class User {
             });
     }
 
+    findEnterprises(res, from, limit) {
+
+        UserModel.find({ role: 'ENTERPRISE_ROLE' }, 'user name last_name role')
+            .skip(from)
+            .limit(limit)
+            .exec((err, enterprises) => {
+
+                if (err) return response500(res, err);
+
+                UserModel.countDocuments((err, count) => {
+
+                    if (err) return response500(res, err);
+
+                    res.status(200).json({
+                        ok: true,
+                        data: enterprises,
+                        total: count
+                    });
+
+                });
+            });
+    }
+
+    findUsers(res, from, limit) {
+
+        UserModel.find({ role: 'USER_ROLE' }, 'user name last_name role')
+            .skip(from)
+            .limit(limit)
+            .exec((err, users) => {
+
+                if (err) return response500(res, err);
+
+                UserModel.countDocuments((err, count) => {
+
+                    if (err) return response500(res, err);
+
+                    res.status(200).json({
+                        ok: true,
+                        data: users,
+                        total: count
+                    });
+
+                });
+            });
+    }
+
     findById(res, id) {
 
         UserModel.findById(id, 'user name name last_name role email')
@@ -99,7 +145,7 @@ class User {
     updateUserAddContact(res, id, contact) {
 
         UserModel.findByIdAndUpdate(id, { $addToSet: { contacts: contact } }, { new: true })
-            .populate('contacts', 'name last_name user email chat_photography')
+            .populate('contacts', 'name last_name user email thumbnail_photography')
             .exec((err, user) => {
                 if (err)
                     return response500(res, err);
@@ -114,7 +160,7 @@ class User {
     updateUserDeleteContact(res, id, contact) {
 
         UserModel.findByIdAndUpdate(id, { $pull: { contacts: contact } }, { new: true })
-            .populate('contacts', 'name last_name user email chat_photography')
+            .populate('contacts', 'name last_name user email thumbnail_photography')
             .exec((err, user) => {
                 if (err)
                     return response500(res, err);

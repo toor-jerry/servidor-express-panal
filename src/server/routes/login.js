@@ -2,10 +2,11 @@ const express = require('express');
 
 const app = express();
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
 const User = require('../models/user');
-const Connection = require('../routes/connection').registerConnection;
+
+const { response403, response500, response400, createToken } = require('../utils/utils');
+const ConnectionModel = require('../models/connection');
 
 // Google
 const CLIENT_ID = require('../config/config').CLIENT_ID;
@@ -42,11 +43,7 @@ app.post('/google', async(req, res) => {
 
     const googleUser = await verify(token)
         .catch(e => {
-            return res.status(403).json({
-                ok: false,
-                message: 'Token no valid!',
-                err: e
-            });
+            return response403(res, 'Token invalid!!');
         });
 
     User.findOne({
@@ -54,21 +51,12 @@ app.post('/google', async(req, res) => {
         })
         .exec((err, userDB) => {
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error finding users',
-                    errors: err
-                });
-            }
+            if (err)
+                return response500(res, err, 'User not found.');
 
             if (userDB) {
                 if (userDB.google === false) {
-                    return res.status(400).json({
-                        ok: false,
-                        message: 'Debe usar su autenticación normal',
-                        errors: err
-                    });
+                    return response400(res, 'You must use your normal authentication.');
                 } else {
                     const token = jwt.sign({
                         user: userDB
@@ -102,11 +90,7 @@ app.post('/google', async(req, res) => {
                             errors: err
                         });
                     }
-                    const token = jwt.sign({
-                        user: userDB
-                    }, process.env.TOKEN_EXPIRATION, {
-                        expiresIn: process.env.TOKEN_EXPIRATION
-                    });
+                    const token = createToken(userDB);
 
                     res.status(200).json({
                         ok: true,
@@ -132,39 +116,31 @@ app.post('/', (req, res) => {
         }, '_id user password name last_name role connections')
         .exec((err, userDB) => {
 
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    message: 'Error finding users',
-                    errors: err
-                });
-            }
+            if (err)
+                return response500(res, err, 'User not found.');
 
-            if (!userDB) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Credentials invalid - email',
-                    errors: err
-                });
-            }
+            if (!userDB)
+                return response400(res, 'Credentials invalid');
 
-            if (!bcrypt.compareSync(body.password, userDB.password)) {
-                return res.status(400).json({
-                    ok: false,
-                    message: 'Credentials invalid - password',
-                    errors: err
-                });
-            }
+            if (!bcrypt.compareSync(body.password, userDB.password))
+                return response400(res, 'Credentials invalid');
 
             // Create token!! 
-            // userDB.password = ':V';
-            const token = jwt.sign({
-                user: userDB
-            }, process.env.SEED, {
-                expiresIn: process.env.TOKEN_EXPIRATION
-            });
+            const token = createToken(userDB);
 
-            Connection(userDB._id, req);
+            if (userDB.connections) {
+                const { 'user-agent': user_agent } = req.headers;
+                let connection = new ConnectionModel({
+                    user: userDB._id,
+                    user_agent,
+                    ip_add: req.ip,
+                    hostname: req.hostname
+                });
+                connection.save((err, connectionCreated) => {
+                    if (err) console.log("Error al intentar guardar conxión en la DB.");
+                    if (!connectionCreated) console.log("No se pudo guardar en la DB la conexión.");
+                });
+            }
 
             res.status(200).json({
                 ok: true,
