@@ -6,7 +6,7 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class Employment {
 
-    findAll(res, params_populate, from, limit) {
+    static findAll(res, params_populate, from, limit) {
 
         EmploymentModel.find({})
             .skip(from)
@@ -32,7 +32,7 @@ class Employment {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
         EmploymentModel.findById(id)
             .populate('enterprise', 'name email role domicile description photography')
@@ -46,7 +46,7 @@ class Employment {
 
     }
 
-    create(res, data) {
+    static create(res, data) {
         let body = _.pick(data, ['name', 'enterprise', 'salary', 'horary', 'workable_days', 'description', 'vacancy_numbers', 'domicile', 'requeriments', 'dateLimit']);
 
         let employment = new EmploymentModel(body);
@@ -60,7 +60,7 @@ class Employment {
 
     }
 
-    update(res, id_employment, enterprise, data) {
+    static update(res, id_employment, enterprise, data) {
 
         EmploymentModel.findOne({ _id: id_employment, enterprise: enterprise }, (err, employment) => {
             if (err) return response500(res, err);
@@ -76,7 +76,7 @@ class Employment {
         });
     }
 
-    delete(res, id_employment, enterprise) {
+    static delete(res, id_employment, enterprise) {
 
         EmploymentModel.findOneAndRemove({ _id: id_employment, enterprise: enterprise }, (err, employmentDeleted) => {
 
@@ -94,6 +94,24 @@ class Employment {
 
         });
 
+    }
+
+    static searchEmployments = (regex, from = 0, limit = 10) => {
+
+        return new Promise((resolve, reject) => {
+
+            EmploymentModel.find({}, 'name salary vacancy_numbers enterprise')
+                .populate('enterprise', 'name')
+                .or([{ 'name': regex }, { 'description': regex }])
+                .skip(from)
+                .limit(limit)
+                .exec((err, employments) => {
+
+                    if (err) reject(`Could not found ${regex} in employments.`, err);
+                    else resolve(employments);
+
+                });
+        });
     }
 }
 

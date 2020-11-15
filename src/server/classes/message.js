@@ -1,10 +1,12 @@
 const MessageModel = require('../models/message');
+const { Upload } = require('../classes/upload');
 
 const { response500, response400, response200, response201 } = require('../utils/utils');
 
+
 class Message {
 
-    findAll(res, room, from, limit) {
+    static findAll(res, room, from, limit) {
 
         MessageModel.find({ room: room })
             .skip(from)
@@ -14,7 +16,7 @@ class Message {
 
                 if (err) return response500(res, err);
 
-                MessageModel.countDocuments((err, count) => {
+                MessageModel.countDocuments({ room: room }, (err, count) => {
 
                     if (err) return response500(res, err);
 
@@ -29,7 +31,7 @@ class Message {
             });
     }
 
-    findById(res, room, id) {
+    static findById(res, room, id) {
 
         MessageModel.findById({ room: room, _id: id })
             .populate('sender', 'name user thumbnail_photography')
@@ -42,7 +44,7 @@ class Message {
             });
     }
 
-    create(res, data) {
+    static create(res, data) {
 
         let message = new MessageModel(data);
         message.save((err, messageCreated) => {
@@ -55,16 +57,40 @@ class Message {
 
     }
 
-    delete(res, room, sender, id) {
+    static delete(res, room, sender, id) {
 
         MessageModel.findOneAndRemove({ room: room, sender: sender, _id: id }, (err, messageDeleted) => {
 
             if (err) return response500(res, err);
             if (!messageDeleted) return response400(res, 'Could not delete the message.');
+
+            if (messageDeleted.type === 'IMG' || messageDeleted.type === 'FILE') {
+
+                let upload = new Upload();
+                upload.deleteFile('messages', messageDeleted.message);
+            }
+
             return response200(res, messageDeleted);
         });
 
     }
+
+    static searchMessages = (room, regex, from = 0, limit = 10) => {
+
+        return new Promise((resolve, reject) => {
+
+            MessageModel.find({ room: room }, 'message date')
+                .and({ 'message': regex })
+                .skip(from)
+                .limit(limit)
+                .exec((err, messages) => {
+
+                    if (err) reject(`Could not found ${regex} in messages.`, err);
+                    else resolve(messages);
+
+                });
+        });
+    };
 }
 
 

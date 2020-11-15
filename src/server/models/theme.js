@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const settingSchema = new Schema({
+const themeSchema = new Schema({
     bg: {
         type: String,
         required: [true, "Bg is required!"]
@@ -29,8 +29,8 @@ const settingSchema = new Schema({
     },
     custom: {
         type: Boolean,
-        default: false
+        default: true
     }
 });
 
-module.exports = mongoose.model("Setting", settingSchema);
+module.exports = mongoose.model("Theme", themeSchema);

@@ -69,7 +69,7 @@ const userSchema = new Schema({
     credential: {
         type: String
     },
-    chat_photography: {
+    thumbnail_photography: {
         type: String
     },
     whatsapp: {
@@ -103,7 +103,8 @@ const userSchema = new Schema({
         type: String
     },
     theme: {
-        type: String
+        type: Schema.Types.ObjectId,
+        ref: 'Theme'
     },
     rfc: {
         type: String

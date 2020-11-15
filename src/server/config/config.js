@@ -39,4 +39,5 @@ process.env.CLIENT_ID = process.env.CLIENT_ID || '266268775348-iqocukp3ju50oc1uu
 // Size images
 // ==========================
 module.exports.SIZE_PHOTOGRAPHY = 400;
+module.exports.SIZE_FILES_IMG = 400;
 module.exports.SIZE_CHAT_PHOTOGRAPHY = 60;

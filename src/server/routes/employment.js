@@ -17,7 +17,7 @@ app.get('/no-auth', (req, res) => {
     const limit = Number(req.query.limit) || 10;
     let params_populate = 'name';
 
-    employment.findAll(res, params_populate, from, limit);
+    Employment.findAll(res, params_populate, from, limit);
 
 });
 
@@ -31,20 +31,20 @@ app.get('/', checkToken, (req, res) => {
     const limit = Number(req.query.limit) || 10;
     let params_populate = 'name email role domicile description photography';
 
-    employment.findAll(res, params_populate, from, limit);
+    Employment.findAll(res, params_populate, from, limit);
 
 });
 
 // ==========================
 // Get employment by id
 // ==========================
-app.get('/:id', checkToken, (req, res) => employment.findById(res, req.params.id));
+app.get('/:id', checkToken, (req, res) => Employment.findById(res, req.params.id));
 
 
 // ==========================
 // Update employment
 // ==========================
-app.put('/:id', [checkToken, checkEnterprise_Role], (req, res) => employment.update(res, req.params.id, req.user._id, req.body));
+app.put('/:id', [checkToken, checkEnterprise_Role], (req, res) => Employment.update(res, req.params.id, req.user._id, req.body));
 
 // ==========================
 // Create a employment 
@@ -53,12 +53,12 @@ app.post('/', [checkToken, checkEnterprise_Role], (req, res) => {
 
     let body = req.body;
     body.enterprise = req.user._id;
-    employment.create(res, body);
+    Employment.create(res, body);
 });
 
 // ==========================
 // Delete a employment by Id 
 // ==========================
-app.delete('/:employment', [checkToken, checkEnterprise_Role], (req, res) => employment.delete(res, req.params.employment, req.user._id));
+app.delete('/:employment', [checkToken, checkEnterprise_Role], (req, res) => Employment.delete(res, req.params.employment, req.user._id));
 
 module.exports = app;

@@ -5,7 +5,7 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class Connection {
 
-    findAll(res, user, from, limit) {
+    static findAll(res, user, from, limit) {
 
         ConnectionModel.find({ user: user })
             .skip(from)
@@ -27,10 +27,10 @@ class Connection {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
         ConnectionModel.findById(id)
-            .populate('user', 'name user email role chat_photography')
+            .populate('user', 'name user email role thumbnail_photography')
             .exec((err, connection) => {
 
                 if (err) return response500(res, err);
@@ -41,7 +41,7 @@ class Connection {
 
     }
 
-    create(res, data) {
+    static create(res, data) {
 
         let connection = new ConnectionModel(data);
         connection.save((err, connectionCreated) => {
@@ -54,7 +54,7 @@ class Connection {
 
     }
 
-    delete(res, user) {
+    static delete(res, user) {
 
         ConnectionModel.deleteMany({ user: user }, (err, result) => {
 

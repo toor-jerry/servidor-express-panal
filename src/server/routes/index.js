@@ -9,12 +9,12 @@ const messageRoutes = require('./message');
 const connectionRoutes = require('./connection');
 const employmentRoutes = require('./employment');
 const postulationRoutes = require('./postulation');
-const settingRoutes = require('./setting');
+const themeRoutes = require('./theme');
 const questionRoutes = require('./question');
 const answerRoutes = require('./answer');
 const searchRoutes = require('./search');
 const uploadRoutes = require('./upload');
-const imagesRoutes = require('./images');
+const filesRoutes = require('./files');
 
 
 // Routes
@@ -26,11 +26,11 @@ app.use('/API/connection', connectionRoutes);
 app.use('/API/employment', employmentRoutes);
 app.use('/API/search', searchRoutes);
 app.use('/API/postulation', postulationRoutes);
-app.use('/API/setting', settingRoutes);
+app.use('/API/theme', themeRoutes);
 app.use('/API/question', questionRoutes);
 app.use('/API/answer', answerRoutes);
 app.use('/API/upload', uploadRoutes);
-app.use('/API/img', imagesRoutes);
+app.use('/API/file', filesRoutes);
 
 
 module.exports = app;

@@ -6,8 +6,6 @@ const { Message } = require('../classes/message');
 
 const app = express();
 
-message = new Message();
-
 // ==========================
 // Get all messages
 // ==========================
@@ -17,7 +15,7 @@ app.get('/:room', [checkToken, checkParticipantOnRoom], (req, res) => {
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    message.findAll(res, room, from, limit);
+    Message.findAll(res, room, from, limit);
 });
 
 
@@ -29,7 +27,7 @@ app.get('/:room/:message', [checkToken, checkParticipantOnRoom], (req, res) => {
     const room = req.params.room;
     const id = req.params.message;
 
-    message.findById(res, room, id);
+    Message.findById(res, room, id);
 });
 
 
@@ -37,19 +35,18 @@ app.get('/:room/:message', [checkToken, checkParticipantOnRoom], (req, res) => {
 // Create a message
 // ==========================
 app.post('/', [checkToken, checkParticipantOnRoom], (req, res) =>
-    message.create(res, {
+    Message.create(res, {
         room: req.body.room,
         sender: req.user._id,
         message: req.body.message
     })
 );
 
-
 // ==========================
 // Delete message
 // ==========================
 app.delete('/:room/:message', [checkToken, checkParticipantOnRoom], (req, res) =>
-    message.delete(res, req.params.room, req.user._id, req.params.message)
+    Message.delete(res, req.params.room, req.user._id, req.params.message)
 );
 
 

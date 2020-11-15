@@ -5,8 +5,6 @@ const { checkToken, checkPrivileges, checkAdmin_Role } = require('../middlewares
 
 const app = express();
 
-const user = new User();
-
 // ==========================
 // Get all users
 // ==========================
@@ -15,7 +13,7 @@ app.get('/', [checkToken, checkAdmin_Role], (req, res) => {
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    user.findAll(res, from, limit);
+    User.findAll(res, from, limit);
 });
 
 // ==========================
@@ -26,7 +24,7 @@ app.get('/', checkToken, (req, res) => {
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    user.findEnterprises(res, from, limit);
+    User.findEnterprises(res, from, limit);
 });
 
 // ==========================
@@ -37,7 +35,7 @@ app.get('/', checkToken, (req, res) => {
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    user.findUsers(res, from, limit);
+    User.findUsers(res, from, limit);
 });
 
 // ==========================
@@ -45,15 +43,24 @@ app.get('/', checkToken, (req, res) => {
 // ==========================
 app.get('/byid', [checkToken, checkPrivileges], (req, res) => {
     const id = req.query.id || req.user._id;
-    user.findById(res, id)
+    User.findById(res, id)
 });
+
+// ==========================
+// Get user by id info basic
+// ==========================
+app.get('/user/info', checkToken, (req, res) => {
+    const id = req.query.id || req.user._id;
+    User.findByIdInfoBasic(res, id)
+});
+
 
 // ==========================
 // Get all contacts of user
 // ==========================
 app.get('/contacts/byid', [checkToken, checkPrivileges], (req, res) => {
     const id = req.query.id || req.user._id;
-    user.getContacts(res, id);
+    User.getContacts(res, id);
 });
 
 // ==========================
@@ -61,14 +68,14 @@ app.get('/contacts/byid', [checkToken, checkPrivileges], (req, res) => {
 // ==========================
 app.put('/', [checkToken, checkPrivileges], (req, res) => {
     const id = req.query.id || req.user._id;
-    user.update(res, id, req.body);
+    User.update(res, id, req.body);
 });
 
 
 // ==========================
 // Create a user
 // ==========================
-app.post('/', (req, res) => user.create(res, req.body));
+app.post('/', (req, res) => User.create(res, req.body));
 
 // ==========================
 // Update user - add contact
@@ -76,7 +83,7 @@ app.post('/', (req, res) => user.create(res, req.body));
 
 app.put('/contact', [checkToken, checkPrivileges], (req, res) => {
     const id = req.query.id || req.user._id;
-    user.updateUserAddContact(res, id, req.body.contact);
+    User.updateUserAddContact(res, id, req.body.contact);
 });
 
 // ==========================
@@ -84,7 +91,7 @@ app.put('/contact', [checkToken, checkPrivileges], (req, res) => {
 // ==========================
 app.delete('/contact/:contact', [checkToken, checkPrivileges], (req, res) => {
     const id = req.query.id || req.user._id;
-    user.updateUserDeleteContact(res, id, req.params.contact);
+    User.updateUserDeleteContact(res, id, req.params.contact);
 });
 
 
@@ -92,6 +99,6 @@ app.delete('/contact/:contact', [checkToken, checkPrivileges], (req, res) => {
 // Delete a user by Id
 // ==========================
 
-app.delete('/:id', [checkToken, checkPrivileges], (req, res) => user.delete(res, req.params.id));
+app.delete('/:id', [checkToken, checkPrivileges], (req, res) => User.delete(res, req.params.id));
 
 module.exports = app;

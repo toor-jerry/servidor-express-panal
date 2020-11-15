@@ -3,12 +3,12 @@ const { response401, response500 } = require('../utils/utils');
 const RoomModel = require('../models/room');
 
 // ==========================
-// Verif token - Headers
+// Verif token - Headers and url
 // ==========================
 
 const checkToken = (req, res, next) => {
 
-    const token = req.get('Authorization');
+    const token = req.get('Authorization') || req.query.Authorization;
 
     jwt.verify(token, process.env.SEED, (err, decoded) => {
 
@@ -19,22 +19,6 @@ const checkToken = (req, res, next) => {
     });
 }
 
-// ==========================
-// Verif token - URL
-// ==========================
-
-const checkTokenUrl = (req, res, next) => {
-
-    const token = req.query.Authorization;
-
-    jwt.verify(token, process.env.SEED, (err, decoded) => {
-
-        if (err) return response401(res, 'Token invalid!!');
-        req.user = decoded.user;
-        next();
-
-    });
-}
 
 // ==========================
 // Verif ENTERPRISE_ROLE
@@ -104,7 +88,6 @@ const checkPrivilegesOnRoom = (req, res, next) => {
 
 module.exports = {
     checkToken,
-    checkTokenUrl,
     checkEnterprise_Role,
     checkAdmin_Role,
     checkPrivileges,

@@ -6,6 +6,11 @@ const statesValids = {
     values: ['READ', 'SAVED'],
     message: '{VALUE} not role valid!!'
 };
+
+const typesValids = {
+    values: ['TXT', 'FILE', 'IMG'],
+    message: '{VALUE} not type valid!!'
+};
 const messageSchema = new Schema({
     room: {
         type: Schema.Types.ObjectId,
@@ -24,6 +29,12 @@ const messageSchema = new Schema({
     date: {
         type: Date,
         default: Date.now
+    },
+    type: {
+        type: String,
+        default: 'TXT',
+        required: [true, "Type is required!"],
+        enum: typesValids
     },
     status: {
         type: String,

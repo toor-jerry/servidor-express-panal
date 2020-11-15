@@ -3,15 +3,15 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class Answer {
 
-    findAll(res, from, limit) {
+    static findAll(res, from, limit) {
 
         AnswerModel.find({})
             .skip(from)
             .limit(limit)
-            .populate('user', 'name user role email chat_photography')
+            .populate('user', 'name user role email thumbnail_photography')
             .populate({
                 path: 'question',
-                populate: { path: 'user', select: 'name user role email chat_photography' }
+                populate: { path: 'user', select: 'name user role email thumbnail_photography' }
             })
             .exec((err, answers) => {
 
@@ -32,7 +32,7 @@ class Answer {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
         AnswerModel.findById(id)
             .exec((err, answer) => {
@@ -45,12 +45,12 @@ class Answer {
 
     }
 
-    findByQuestion(res, question, from, limit) {
+    static findByQuestion(res, question, from, limit) {
 
         AnswerModel.find({ question: question })
             .skip(from)
             .limit(limit)
-            .populate('user', 'name user role email chat_photography')
+            .populate('user', 'name user role email thumbnail_photography')
             .exec((err, answers) => {
 
                 if (err) return response500(res, err);
@@ -70,7 +70,7 @@ class Answer {
 
     }
 
-    create(res, data) {
+    static create(res, data) {
 
         let answer = new AnswerModel(data);
         answer.save((err, answerCreated) => {
@@ -83,7 +83,7 @@ class Answer {
 
     }
 
-    update(res, id_answer, user, data) {
+    static update(res, id_answer, user, data) {
 
         AnswerModel.findOne({ _id: id_answer, user: user }, (err, answer) => {
             if (err) return response500(res, err);
@@ -101,7 +101,7 @@ class Answer {
         });
     }
 
-    delete(res, id_answer, user) {
+    static delete(res, id_answer, user) {
 
         AnswerModel.findOneAndRemove({ _id: id_answer, user: user }, (err, answerDeleted) => {
 
@@ -113,6 +113,22 @@ class Answer {
         });
 
     }
+
+    static searchAnswer = (regex, from = 0, limit = 10) => {
+
+        return new Promise((resolve, reject) => {
+
+            AnswerModel.find({}, 'answer createAt')
+                .and([{ 'answer': regex }])
+                .skip(from)
+                .limit(limit)
+                .exec((err, answers) => {
+
+                    if (err) reject('Error at find question.', err);
+                    else resolve(answers);
+                });
+        });
+    };
 }
 
 

@@ -6,7 +6,6 @@ const { checkToken, checkAdmin_Role, checkParticipantOnRoom, checkPrivilegesOnRo
 const { Room } = require('../classes/room');
 
 const app = express();
-room = new Room();
 
 // ==========================
 // Get all rooms
@@ -16,19 +15,19 @@ app.get('/', [checkToken, checkAdmin_Role], (req, res) => {
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
-    room.findAll(res, from, limit);
+    Room.findAll(res, from, limit);
 
 });
 
 // ==========================
 // Get by id
 // ==========================
-app.get('/:room', [checkToken, checkParticipantOnRoom], (req, res) => room.findById(res, req.params.room));
+app.get('/:room', [checkToken, checkParticipantOnRoom], (req, res) => Room.findById(res, req.params.room));
 
 // ==========================
 // Update room 
 // ==========================
-app.put('/:id', [checkToken, checkParticipantOnRoom], (req, res) => room.update(res, req.params.id, req.body));
+app.put('/:room', [checkToken, checkParticipantOnRoom], (req, res) => Room.update(res, req.params.room, req.body));
 
 
 // ==========================
@@ -52,7 +51,7 @@ app.post('/', checkToken, (req, res) => {
         participants = _.union(participants, body.participants.split(','));
     }
 
-    room.create(res, {
+    Room.create(res, {
         name: body.name,
         theme: body.theme,
         private: body.private,
@@ -66,7 +65,7 @@ app.post('/', checkToken, (req, res) => {
 // Create a room simple
 // ==========================
 app.post('/chat', checkToken, (req, res) =>
-    room.create(res, {
+    Room.create(res, {
         name: req.body.name,
         theme: req.body.theme,
         private: true,
@@ -77,13 +76,19 @@ app.post('/chat', checkToken, (req, res) =>
 // ==========================
 // Delete a room
 // ==========================
-app.delete('/:room', [checkToken, checkPrivilegesOnRoom], (req, res) => room.delete(res, req.params.room));
+app.delete('/:room', [checkToken, checkPrivilegesOnRoom], (req, res) => Room.delete(res, req.params.room));
+
+// ==========================
+// Delete a chat
+// ==========================
+app.delete('/chat/:room', [checkToken, checkParticipantOnRoom], (req, res) => Room.delete(res, req.params.room));
+
 
 // ==========================
 // Delete a chat
 // ==========================
 app.delete('/chat/:room', [checkToken, checkParticipantOnRoom], (req, res) => {
-    room.delete(res, req.params.room);
+    Room.delete(res, req.params.room);
 });
 
 // ==========================
@@ -96,7 +101,7 @@ app.put('/add/participant/:room', [checkToken, checkPrivilegesOnRoom], (req, res
         body.participants = body.participants.replace(/\s/g, "");
         participants = _.union(participants, body.participants.split(','));
     }
-    room.updateRoomAddParticipant(res, req.params.room, participants);
+    Room.updateRoomAddParticipant(res, req.params.room, participants);
 });
 
 // ==========================
@@ -109,7 +114,7 @@ app.put('/add/admin/:room', [checkToken, checkPrivilegesOnRoom], (req, res) => {
         body.admins = body.admins.replace(/\s/g, "");
         admins = _.union(admins, body.admins.split(','));
     }
-    room.updateRoomAddAdmin(res, req.params.room, admins);
+    Room.updateRoomAddAdmin(res, req.params.room, admins);
 });
 
 
@@ -132,7 +137,7 @@ app.delete('/remove/participant/:room', [checkToken, checkPrivilegesOnRoom], (re
     }
     data = _.union(data, [req.query.participant]);
 
-    room.updateRoomDeleteParticipant(res, req.params.room, data);
+    Room.updateRoomDeleteParticipant(res, req.params.room, data);
 });
 
 

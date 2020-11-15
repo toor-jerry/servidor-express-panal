@@ -5,12 +5,12 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class Question {
 
-    findAll(res, from, limit) {
+    static findAll(res, from, limit) {
 
         QuestionModel.find({})
             .skip(from)
             .limit(limit)
-            .populate('user', 'name user role email chat_photography')
+            .populate('user', 'name user role email thumbnail_photography')
             .exec((err, questions) => {
 
                 if (err) return response500(res, err);
@@ -30,10 +30,10 @@ class Question {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
         QuestionModel.findById(id)
-            .populate('user', 'name user email role chat_photography')
+            .populate('user', 'name user email role thumbnail_photography')
             .exec((err, question) => {
 
                 if (err) return response500(res, err);
@@ -44,7 +44,7 @@ class Question {
 
     }
 
-    create(res, data) {
+    static create(res, data) {
 
         let question = new QuestionModel(data);
         question.save((err, questionCreated) => {
@@ -57,7 +57,7 @@ class Question {
 
     }
 
-    update(res, id_question, user, data) {
+    static update(res, id_question, user, data) {
 
         QuestionModel.findOne({ _id: id_question, user: user }, (err, questionDB) => {
             if (err) return response500(res, err);
@@ -74,7 +74,7 @@ class Question {
         });
     }
 
-    delete(res, id_question, user) {
+    static delete(res, id_question, user) {
 
         QuestionModel.findOneAndRemove({ _id: id_question, user: user }, (err, questionDeleted) => {
 
@@ -94,6 +94,25 @@ class Question {
         });
 
     }
+
+    static searchQuestion = (regex, from = 0, limit = 10) => {
+
+        return new Promise((resolve, reject) => {
+
+            QuestionModel.find({}, 'question createAt')
+                .and([{ 'question': regex }])
+                .skip(from)
+                .limit(limit)
+                .exec((err, questions) => {
+
+                    if (err) {
+                        reject('Error at find question.', err);
+                    } else {
+                        resolve(questions);
+                    }
+                });
+        });
+    };
 }
 
 

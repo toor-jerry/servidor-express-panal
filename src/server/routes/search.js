@@ -1,91 +1,90 @@
 const express = require('express');
 
-const jwt = require('jsonwebtoken');
-const mdAuth = require('../middlewares/auth');
+const { checkToken, checkParticipantOnRoom } = require('../middlewares/auth');
 
-const Employment = require('../models/employment');
-// const FQA = require('../models/fqa');
-const User = require('../models/user');
-const Room = require('../models/room');
+
+const { Employment } = require('../classes/employment');
+const { User } = require('../classes/user');
+const { Room } = require('../classes/room');
+const { Question } = require('../classes/question');
+const { Answer } = require('../classes/answer');
+const { Message } = require('../classes/message');
+
+const { response200, response500, response400 } = require('../utils/utils');
 
 const app = express();
-
 
 // ==========================
 // Search employments - no-auth
 // ==========================
-
 app.get('/no-auth/:search', (req, res) => {
 
     const search = req.params.search;
     const regex = new RegExp(search, 'i');
 
-    searchEmployments(regex)
-        .then(employments => {
-            res.status(200).json({
-                ok: true,
-                employments
-            });
-        })
-        .catch(err => {
-            res.status(400).json({
-                ok: true,
-                err
-            });
-        });
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Employment.searchEmployments(regex, from, limit)
+        .then(employments => response200(res, employments))
+        .catch(err => response500(res, err.toString()));
+});
+
+// ==========================
+// Search messages
+// ==========================
+app.get('/messages/:room/:search', [checkToken, checkParticipantOnRoom], (req, res) => {
+
+    const room = req.params.room;
+    const search = req.params.search;
+    const regex = new RegExp(search, 'i');
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Message.searchMessages(room, regex, from, limit)
+        .then(messages => response200(res, messages))
+        .catch(err => response500(res, err.toString()));
 });
 
 // ==========================
 // Search by colection
 // ==========================
-
-app.get('/specific/:colection/:search', (req, res) => {
+app.get('/specific/:colection/:search', checkToken, (req, res) => {
 
     const search = req.params.search;
     const regex = new RegExp(search, 'i');
     const colection = req.params.colection;
-    const conversation = req.query.conversation;
-    console.log(conversation);
-    var promise;
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
 
     switch (colection) {
         case 'employments':
-            promise = searchEmployments(regex);
+            promise = Employment.searchEmployments(regex, from, limit);
+            break;
         case 'users':
-            promise = searchUsers(regex);
+            promise = User.searchUsers(regex, from, limit);
             break;
         case 'room':
-            promise = searchRoom(regex, conversation);
+            promise = Room.searchRoom(regex, from, limit);
             break;
-        case 'fqas':
-            promise = searchRoom(regex, conversation);
-            // promise = searchFQAs(regex);
+        case 'questions':
+            promise = Question.searchQuestion(regex, from, limit)
             break;
-
+        case 'answers':
+            promise = Answer.searchAnswer(regex, from, limit)
+            break;
         default:
-            return res.status(400).json({
-                ok: false,
-                message: 'Find types: employments, users, fqas and room',
-                error: { message: 'Invalid colection!' }
-            });
-            break;
+            return response400(res, 'Invalid types: employments, users, questions, answers, and room');
     }
 
-    promise.then(data => {
-
+    promise.then(data =>
         res.status(200).json({
             ok: true,
             [colection]: data
-        });
-
-    }).catch(err => {
-
-        res.status(400).json({
-            ok: false,
-            err
-        });
-
-    });
+        })
+    ).catch(err => response400(res, undefined, err.toString()));
 
 });
 
@@ -93,145 +92,35 @@ app.get('/specific/:colection/:search', (req, res) => {
 // ==========================
 // Get all search
 // ==========================
-app.get('/all/:search', (req, res) => {
+app.get('/all/:search', checkToken, (req, res) => {
 
     const search = req.params.search;
     const regex = new RegExp(search, 'i');
 
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
     Promise.all([
-            searchEmployments(regex),
-            searchFQAs(regex),
-            searchUsers(regex)
+            Employment.searchEmployments(regex, from, limit),
+            User.searchUsers(regex, from, limit),
+            Room.searchRoom(regex, from, limit),
+            Question.searchQuestion(regex, from, limit),
+            Answer.searchAnswer(regex, from, limit)
         ])
         .then(responses => {
 
             res.status(200).json({
                 ok: true,
-                Employments: responses[0],
-                FQAs: responses[1],
-                Users: responses[2]
+                employments: responses[0],
+                users: responses[1],
+                room: responses[2],
+                quesions: responses[3],
+                answers: responses[4],
             });
 
         })
-        .catch(err => {
-            res.status(400).json({
-                ok: true,
-                err
-            });
-        });
+        .catch(err => response400(res, undefined, err.toString()));
 });
-
-// ==========================
-// Search Employments
-// ==========================
-
-const searchEmployments = async(regex) => {
-
-    return new Promise((resolve, reject) => {
-
-        Employment.find({}, 'name salary vacancy_numbers enterprise')
-            .populate('enterprise', 'name')
-            .or([{
-                    'name': regex
-                },
-                {
-                    'description': regex
-                }
-            ])
-            .exec((err, employments) => {
-
-                if (err) {
-                    reject('Error at find employment', err);
-                } else {
-                    resolve(employments);
-                }
-            });
-    });
-};
-
-// ==========================
-// Search Users
-// ==========================
-
-const searchUsers = (regex) => {
-
-    return new Promise((resolve, reject) => {
-
-        User.find({}, 'name last_name user')
-            .and({
-                'role': {
-                    $ne: 'ADMIN_ROLE'
-                }
-            })
-            .or([{
-                'name': regex
-            }, {
-                'last_name': regex
-            }, {
-                'user': regex
-            }, {
-                'email': regex
-            }])
-            .exec((err, users) => {
-
-                if (err) {
-                    reject('Error at find user', err);
-                } else {
-                    resolve(users);
-                }
-            });
-    });
-};
-
-// ==========================
-// Search FQAs
-// ==========================
-
-// const searchFQAs = (regex) => {
-
-//     return new Promise((resolve, reject) => {
-
-//         FQA.find({}, 'question answer')
-//             .or([{
-//                 'question': regex
-//             }, {
-//                 'answer': regex
-//             }])
-//             .exec((err, fqas) => {
-
-//                 if (err) {
-//                     reject('Error at find fqa', err);
-//                 } else {
-//                     resolve(fqas);
-//                 }
-//             });
-//     });
-// };
-
-// ==========================
-// Search room
-// ==========================
-
-const searchRoom = (regex, conversation) => {
-
-    return new Promise((resolve, reject) => {
-
-        if (!conversation) {
-            reject('Bad request, conversation null');
-        }
-
-        Room.find({ id_conversation: conversation, message: regex })
-            .and({ status: { $ne: 'DELETED' } })
-            .exec((err, messages) => {
-
-                if (err) {
-                    reject('Error at find room', err);
-                } else {
-                    resolve(messages);
-                }
-            });
-    });
-};
 
 
 module.exports = app;

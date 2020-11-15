@@ -1,4 +1,6 @@
 const jwt = require('jsonwebtoken');
+const uuid = require('uuid');
+
 
 
 const response200 = (res, data = undefined) => {
@@ -61,6 +63,8 @@ const createToken = (data) => jwt.sign({
     expiresIn: process.env.TOKEN_EXPIRATION
 });
 
+const generateRandomFileName = (id_user, fileExtention) => `${ id_user }-${uuid.v1()}.${fileExtention}`;
+
 
 module.exports = {
     response200,
@@ -70,5 +74,6 @@ module.exports = {
     response403,
     response404,
     response500,
-    createToken
+    createToken,
+    generateRandomFileName
 }

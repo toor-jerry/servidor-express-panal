@@ -2,12 +2,13 @@ const _ = require('underscore');
 
 const RoomModel = require('../models/room');
 const MessageModel = require('../models/message');
+const { Upload } = require('../classes/upload');
 
 const { response500, response400, response200, response201 } = require('../utils/utils');
 
 class Room {
 
-    findAll(res, from, limit) {
+    static findAll(res, from, limit) {
 
         RoomModel.find({})
             .skip(from)
@@ -30,7 +31,7 @@ class Room {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
         RoomModel.findById(id)
             .populate('participants', 'user name thumbnail_photography')
@@ -45,7 +46,7 @@ class Room {
 
     }
 
-    create(res, data) {
+    static create(res, data) {
         let room = new RoomModel(data);
 
         room.save((err, roomCreated) => {
@@ -56,7 +57,7 @@ class Room {
         });
     }
 
-    update(res, id, data) {
+    static update(res, id, data) {
 
         RoomModel.findById(id, (err, room) => {
             if (err) return response500(res, err);
@@ -72,12 +73,21 @@ class Room {
         });
     }
 
-    delete(res, room) {
+    static delete(res, room) {
 
         RoomModel.findByIdAndDelete(room, (err, roomDeleted) => {
             if (err) return response500(res, err);
             if (!roomDeleted) return response400(res, 'Could not delete the room.');
 
+            let upload = new Upload();
+
+            MessageModel.find({ room: room, $or: [{ type: 'IMG' }, { type: 'FILE' }] }, (err, messagess) => {
+                if (err) return response500(res, err, 'Could not found the messagess.');
+
+                for (const message of messagess) {
+                    upload.deleteFile('messages', message.message);
+                }
+            });
             MessageModel.deleteMany({ room: room }, (err, result) => {
                 if (err) return response500(res, err, 'Could not delete the messagess.');
                 return res.status(200).json({
@@ -89,7 +99,7 @@ class Room {
         });
     }
 
-    updateRoomAddParticipant(res, room, participant) {
+    static updateRoomAddParticipant(res, room, participant) {
 
         RoomModel.findByIdAndUpdate(room, { $addToSet: { participants: participant } }, { new: true })
             .populate('participants', 'name last_name email')
@@ -104,7 +114,7 @@ class Room {
             });
     }
 
-    updateRoomAddAdmin(res, room, admin) {
+    static updateRoomAddAdmin(res, room, admin) {
 
         RoomModel.findByIdAndUpdate(room, { $addToSet: { admins: admin } }, { new: true })
             .populate('admins', 'name last_name email')
@@ -119,7 +129,7 @@ class Room {
             });
     }
 
-    updateRoomDeleteParticipant(res, room, user) {
+    static updateRoomDeleteParticipant(res, room, user) {
 
         RoomModel.findByIdAndUpdate(room, { $pullAll: { participants: user, admins: user } }, { new: true })
             .populate('participants', 'name last_name email')
@@ -140,6 +150,25 @@ class Room {
                 });
             });
     }
+
+    static searchRoom = (regex) => {
+
+        return new Promise((resolve, reject, from = 0, limit = 10) => {
+
+            RoomModel.find({ private: false }, 'name')
+                .and([{ 'name': regex }])
+                .skip(from)
+                .limit(limit)
+                .exec((err, rooms) => {
+
+                    if (err) {
+                        reject('Error at find room', err);
+                    } else {
+                        resolve(rooms);
+                    }
+                });
+        });
+    };
 
 }
 

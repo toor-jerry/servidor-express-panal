@@ -7,9 +7,9 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class User {
 
-    findAll(res, from, limit) {
+    static findAll(res, from, limit) {
 
-        UserModel.find({}, 'user name last_name role')
+        UserModel.find({}, 'user name last_name role photography')
             .skip(from)
             .limit(limit)
             .exec((err, users) => {
@@ -30,7 +30,7 @@ class User {
             });
     }
 
-    findEnterprises(res, from, limit) {
+    static findEnterprises(res, from, limit) {
 
         UserModel.find({ role: 'ENTERPRISE_ROLE' }, 'user name last_name role')
             .skip(from)
@@ -53,7 +53,7 @@ class User {
             });
     }
 
-    findUsers(res, from, limit) {
+    static findUsers(res, from, limit) {
 
         UserModel.find({ role: 'USER_ROLE' }, 'user name last_name role')
             .skip(from)
@@ -76,9 +76,10 @@ class User {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
-        UserModel.findById(id, 'user name name last_name role email')
+        UserModel.findById(id)
+            .populate('theme')
             .exec((err, user) => {
 
                 if (err) return response500(res, err);
@@ -89,7 +90,20 @@ class User {
 
     }
 
-    getContacts(res, id) {
+    static findByIdInfoBasic(res, id) {
+
+        UserModel.findById(id, 'user name name last_name role email theme')
+            .exec((err, user) => {
+
+                if (err) return response500(res, err);
+                if (!user) return response400(res, 'User not found.');
+
+                response200(res, user);
+            });
+
+    }
+
+    static getContacts(res, id) {
         UserModel.findById(id, 'contacts')
             .populate('contacts', 'user name last_name email')
             .exec((err, contacts) => {
@@ -100,7 +114,7 @@ class User {
             });
     }
 
-    create(res, data) {
+    static create(res, data) {
         let body = _.pick(data, ['name', 'last_name', 'user', 'email', 'domicile', 'nacionality', 'gender', 'date_birth', 'speciality', 'professional_titles', 'last_job', 'description', 'whatsapp', 'movil_phone', 'telephone', 'facebook', 'twitter', 'instagram', 'youtube_channel', 'blog_personal', 'page_web', 'location', 'role', 'rfc']);
         body.password = bcrypt.hashSync(data.password, 10);
 
@@ -116,7 +130,7 @@ class User {
 
     }
 
-    update(res, id, data) {
+    static update(res, id, data) {
         UserModel.findById(id, (err, user) => {
             if (err) return response500(res, err);
             if (!user) return response400(res, 'User not found.');
@@ -131,7 +145,7 @@ class User {
         });
     }
 
-    delete(res, id) {
+    static delete(res, id) {
 
         UserModel.findByIdAndDelete(id, (err, userDeleted) => {
             if (err) return response500(res, err);
@@ -142,7 +156,7 @@ class User {
 
     }
 
-    updateUserAddContact(res, id, contact) {
+    static updateUserAddContact(res, id, contact) {
 
         UserModel.findByIdAndUpdate(id, { $addToSet: { contacts: contact } }, { new: true })
             .populate('contacts', 'name last_name user email thumbnail_photography')
@@ -157,7 +171,7 @@ class User {
             });
     }
 
-    updateUserDeleteContact(res, id, contact) {
+    static updateUserDeleteContact(res, id, contact) {
 
         UserModel.findByIdAndUpdate(id, { $pull: { contacts: contact } }, { new: true })
             .populate('contacts', 'name last_name user email thumbnail_photography')
@@ -171,6 +185,26 @@ class User {
                 return response201(res, user.contacts);
             });
     }
+
+
+    static searchUsers = (regex, from = 0, limit = 10) => {
+
+        return new Promise((resolve, reject) => {
+
+            UserModel.find({}, 'name last_name user role')
+                .and({ 'role': { $ne: 'ADMIN_ROLE' } })
+                .or([{ 'name': regex }, { 'last_name': regex }, { 'user': regex }, { 'email': regex }])
+                .skip(from)
+                .limit(limit)
+                .exec((err, users) => {
+
+                    if (err) reject(`Could not found ${regex} in users.`, err);
+                    else resolve(users);
+
+                });
+        });
+    };
+
 
 }
 

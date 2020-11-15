@@ -5,7 +5,7 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class Postulation {
 
-    findAll(res, from, limit) {
+    static findAll(res, from, limit) {
 
         PostulationModel.find({})
             .skip(from)
@@ -34,7 +34,7 @@ class Postulation {
             });
     }
 
-    findById(res, id) {
+    static findById(res, id) {
 
         PostulationModel.findById(id)
             .populate({
@@ -52,7 +52,7 @@ class Postulation {
 
     }
 
-    create(res, data) {
+    static create(res, data) {
         PostulationModel.findOne({ employment: data.employment, user: data.user }, (err, postulationDB) => {
             if (err) return response500(res, err);
             if (postulationDB) return response400(res, 'You alredy postulate.');
@@ -69,7 +69,7 @@ class Postulation {
         });
     }
 
-    delete(res, id_postulation, user) {
+    static delete(res, id_postulation, user) {
 
         PostulationModel.findOneAndRemove({ _id: id_postulation, user: user }, (err, postulationDeleted) => {
 
