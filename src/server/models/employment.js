@@ -1,6 +1,13 @@
 const mongoose = require("mongoose");
+const sanitizer = require('mongoose-sanitize');
 
 const Schema = mongoose.Schema;
+
+const typesValids = {
+    values: ['JOB_OFFER', 'SOCIETY_SERVICE', 'PROFESSIONAL_PRACTICES'],
+    message: '{VALUE} not role valid!!'
+};
+
 
 const employmentSchema = new Schema({
     name: {
@@ -31,6 +38,9 @@ const employmentSchema = new Schema({
     domicile: {
         type: String
     },
+    category: {
+        type: String
+    },
     requeriments: {
         type: String
     },
@@ -41,10 +51,17 @@ const employmentSchema = new Schema({
     dateLimit: {
         type: Date
     },
+    type: {
+        type: String,
+        required: true,
+        default: "JOB_OFFER",
+        enum: typesValids
+    },
     state: {
         type: Boolean,
         default: true
     }
 });
 
+employmentSchema.plugin(sanitizer);
 module.exports = mongoose.model("Employment", employmentSchema);

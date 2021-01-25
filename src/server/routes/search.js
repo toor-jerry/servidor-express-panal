@@ -11,6 +11,7 @@ const { Answer } = require('../classes/answer');
 const { Message } = require('../classes/message');
 
 const { response200, response500, response400 } = require('../utils/utils');
+const question = require('../models/question');
 
 const app = express();
 
@@ -20,7 +21,12 @@ const app = express();
 app.get('/no-auth/:search', (req, res) => {
 
     const search = req.params.search;
-    const regex = new RegExp(search, 'i');
+    let regex;
+    try {
+        regex = new RegExp(search.trim(), 'i');
+    } catch (err) {
+        return response400(res, 'Bad request.', err.toString());
+    }
 
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
@@ -31,13 +37,39 @@ app.get('/no-auth/:search', (req, res) => {
 });
 
 // ==========================
+// Search question - no-auth
+// ==========================
+app.get('/no-auth/question/:search', (req, res) => {
+
+    const search = req.params.search;
+    let regex;
+    try {
+        regex = new RegExp(search.trim(), 'i');
+    } catch (err) {
+        return response400(res, 'Bad request.', err.toString());
+    }
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Question.searchQuestion(regex, from, limit)
+        .then(questions => response200(res, questions))
+        .catch(err => response500(res, err.toString()));
+});
+
+// ==========================
 // Search messages
 // ==========================
 app.get('/messages/:room/:search', [checkToken, checkParticipantOnRoom], (req, res) => {
 
     const room = req.params.room;
     const search = req.params.search;
-    const regex = new RegExp(search, 'i');
+    let regex;
+    try {
+        regex = new RegExp(search.trim(), 'i');
+    } catch (err) {
+        return response400(res, 'Bad request.', err.toString());
+    }
 
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
@@ -53,15 +85,29 @@ app.get('/messages/:room/:search', [checkToken, checkParticipantOnRoom], (req, r
 app.get('/specific/:colection/:search', checkToken, (req, res) => {
 
     const search = req.params.search;
-    const regex = new RegExp(search, 'i');
+    let regex;
+    try {
+        regex = new RegExp(search.trim(), 'i');
+    } catch (err) {
+        return response400(res, 'Bad request.', err.toString());
+    }
     const colection = req.params.colection;
 
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 
     switch (colection) {
-        case 'employments':
+        case 'employments': // All
             promise = Employment.searchEmployments(regex, from, limit);
+            break;
+        case 'only_employments':
+            promise = Employment.searchOnlyEmployments(regex, from, limit);
+            break;
+        case 'society_service':
+            promise = Employment.searchSocietyService(regex, from, limit);
+            break;
+        case 'professional_practices':
+            promise = Employment.searchProfessionalPractice(regex, from, limit);
             break;
         case 'users':
             promise = User.searchUsers(regex, from, limit);
@@ -82,9 +128,13 @@ app.get('/specific/:colection/:search', checkToken, (req, res) => {
     promise.then(data =>
         res.status(200).json({
             ok: true,
-            [colection]: data
+            [colection]: data.data,
+            total: data.total
         })
-    ).catch(err => response400(res, undefined, err.toString()));
+    ).catch(err => {
+        console.log(err);
+        response400(res, undefined, err.toString())
+    });
 
 });
 
@@ -95,8 +145,12 @@ app.get('/specific/:colection/:search', checkToken, (req, res) => {
 app.get('/all/:search', checkToken, (req, res) => {
 
     const search = req.params.search;
-    const regex = new RegExp(search, 'i');
-
+    let regex;
+    try {
+        regex = new RegExp(search.trim(), 'i');
+    } catch (err) {
+        return response400(res, 'Bad request.', err.toString());
+    }
     const from = Number(req.query.from) || 0;
     const limit = Number(req.query.limit) || 10;
 

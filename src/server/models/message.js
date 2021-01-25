@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const sanitizer = require('mongoose-sanitize');
 
 const Schema = mongoose.Schema;
 
@@ -26,6 +27,9 @@ const messageSchema = new Schema({
         type: String,
         required: [true, "Message is required!"]
     },
+    fileName: {
+        type: String
+    },
     date: {
         type: Date,
         default: Date.now
@@ -44,4 +48,5 @@ const messageSchema = new Schema({
     }
 });
 
+messageSchema.plugin(sanitizer);
 module.exports = mongoose.model("Message", messageSchema);

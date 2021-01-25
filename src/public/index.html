@@ -1,14 +1,33 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
-    <title>Chat</title>
-</head>
+    <title>Panal</title>
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" id="theme-pages">
+    <!-- href="assets/css/themes/theme-default-dark.css" -->
+    <link rel="stylesheet" href="assets/animate.css">
+    <!--ICONMON-->
+    <link rel="stylesheet" type="text/css" href="assets/style.css"/>
+    <!-- Google -->
+    <!-- <script src="http://localhost:3000/platform.js"></script> -->
+    <script src="https://apis.google.com/js/platform.js"></script>
+    <meta name="google-signin-client_id" content="266268775348-iqocukp3ju50oc1uunp5odfj1uo2cm5h.apps.googleusercontent.com">
 
-<body>
+<link rel="stylesheet" href="styles.e0227ab3566a4bdf05af.css"></head>
 
-
-</body>
+<body class="bg-container" id="body">
+    <app-root></app-root>
+    <!-- <script src="http://localhost:3000/socket.io/socket.io.js"></script> -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io('http://localhost:3000', {
+            transports: ['websocket']
+        });
+    </script>
+<script src="runtime-es2015.e8ad22fe3cb4e4dc408e.js" type="module"></script><script src="runtime-es5.e8ad22fe3cb4e4dc408e.js" nomodule defer></script><script src="polyfills-es5.d2df415b4af3278c20f0.js" nomodule defer></script><script src="polyfills-es2015.0f9362206e9d94e5d5e7.js" type="module"></script><script src="scripts.690544d4b945a69231a5.js" defer></script><script src="main-es2015.8e6dc9f1d5c0d5c3edbb.js" type="module"></script><script src="main-es5.8e6dc9f1d5c0d5c3edbb.js" nomodule defer></script></body>
 
 </html>

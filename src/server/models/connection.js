@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const sanitizer = require('mongoose-sanitize');
 
 const Schema = mongoose.Schema;
 
@@ -22,4 +23,5 @@ const connectionSchema = new Schema({
     }
 });
 
+connectionSchema.plugin(sanitizer);
 module.exports = mongoose.model("Connection", connectionSchema);

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <mate charest="utf-8" />
+    <title>Curriculum Vitae | {{name}} {{last_name}}</title>
+</head>
+<style>
+.text-center {
+    text-align: center;
+}
+.photo {
+    width: 3cm;
+}
+.text-right {
+    text-align: right;
+}
+.bold {
+    font-weight: bold;
+}
+.logo {
+    width: 1cm;
+}
+p {
+    font-size: 12px;
+}
+</style>
+
+<body>
+            <h2 class="text-center">{{name}} {{last_name}}
+                {{#if photoUser}}
+                    <img src="{{{photoUser}}}" class="photo" style="float: right;" alt=""/>
+                {{/if}}
+                </h2>
+                <h5 class="bold">{{speciality}}</h5>
+                <h5>{{description}}</h5>
+                {{#if email}}
+                    <p>Correo electrónico: <b>{{email}}</b></p>
+                {{/if}}
+                
+                {{#if domicile}}
+                    <p>Domicilio: <b>{{domicile}}</b></p>
+                {{/if}}
+                
+                {{#if nacionality}}
+                    <p>Nacionalidad: <b>{{nacionality}}</b></p>
+                {{/if}}
+                
+                {{#if gender}}
+                    <p>Género: <b>{{gender}}</b></p>
+                {{/if}}
+                
+                {{#if date_birth}}
+                    <p>Fecha de nacimiento: <b>{{date_birth}}</b></p>
+                {{/if}}
+                
+                {{#if professional_titles}}
+                    <p>Titulos profesionales: <b>{{professional_titles}}</b></p>
+                {{/if}}
+                {{#if last_job}}
+                <p>Último trabajo: <b>{{last_job}}</b></p>
+                {{/if}}
+                
+                    {{# if movil_phone}}
+                    <h5><img src="{{{logoMovil_phone}}}" class="logo" alt=""/> {{movil_phone}}</h5>
+                {{/if}}
+                {{# if telephone}}
+                    <h5><img src="{{{logoTelephone}}}" class="logo" alt=""/> {{telephone}}</h5>
+                {{/if}}
+
+                {{# if whatsapp}}
+                    <h5><img src="{{{logoWhatsapp}}}" class="logo" alt=""/> {{whatsapp}}</h5>
+                {{/if}}
+                {{# if facebook}}
+                    <h5><img src="{{{logoFacebook}}}" class="logo" alt=""/> {{facebook}}</h5>
+                {{/if}}
+                {{# if twitter}}
+                    <h5><img src="{{{logoTwitter}}}" class="logo" alt=""/> {{twitter}}</h5>
+                {{/if}}
+                {{# if instagram}}
+                    <h5><img src="{{{logoInstagram}}}" class="logo" alt=""/> {{instagram}}</h5>
+                {{/if}}
+                {{# if youtube_channel}}
+                    <h5><img src="{{{logoYoutube_channel}}}" class="logo" style="border-radius: 5px;" alt=""/> {{youtube_channel}}</h5>
+                {{/if}}
+
+                {{# if blog_personal}}
+                    <h5><img src="{{{logoBlog_personal}}}" class="logo" alt=""/> {{blog_personal}}</h5>
+                {{/if}}
+                {{# if page_web}}
+                    <h5><img src="{{{logoPage_web}}}" class="logo" alt=""/> <a href="{{page_web}}" style="text-decoration: none;">{{page_web}}</a></h5>
+                {{/if}}
+</body>
+
+</html>

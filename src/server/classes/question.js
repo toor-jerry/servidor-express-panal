@@ -10,7 +10,8 @@ class Question {
         QuestionModel.find({})
             .skip(from)
             .limit(limit)
-            .populate('user', 'name user role email thumbnail_photography')
+            .sort('question')
+            .populate('user', 'name last_name user role email thumbnail_photography')
             .exec((err, questions) => {
 
                 if (err) return response500(res, err);
@@ -33,7 +34,7 @@ class Question {
     static findById(res, id) {
 
         QuestionModel.findById(id)
-            .populate('user', 'name user email role thumbnail_photography')
+            .populate('user', 'name last_name user email role thumbnail_photography')
             .exec((err, question) => {
 
                 if (err) return response500(res, err);
@@ -105,11 +106,17 @@ class Question {
                 .limit(limit)
                 .exec((err, questions) => {
 
-                    if (err) {
-                        reject('Error at find question.', err);
-                    } else {
-                        resolve(questions);
-                    }
+                    if (err) reject('Error at find question.', err);
+
+                    QuestionModel.countDocuments({})
+                        .and([{ 'question': regex }])
+                        .exec((err, total) => {
+                            if (err) reject('Error at find question.', err);
+                            else resolve({
+                                data: questions,
+                                total
+                            });
+                        });
                 });
         });
     };

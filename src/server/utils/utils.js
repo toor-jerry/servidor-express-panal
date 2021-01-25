@@ -1,8 +1,6 @@
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
 
-
-
 const response200 = (res, data = undefined) => {
     return res.status(200).json({
         ok: true,
@@ -57,11 +55,13 @@ const response500 = (res, err, message = undefined) => {
     });
 }
 
-const createToken = (data) => jwt.sign({
-    user: data,
-}, process.env.SEED, {
-    expiresIn: process.env.TOKEN_EXPIRATION
-});
+const createToken = (data) => {
+    return jwt.sign({
+        user: data
+    }, process.env.SEED + data.seed, {
+        expiresIn: process.env.TOKEN_EXPIRATION
+    });
+}
 
 const generateRandomFileName = (id_user, fileExtention) => `${ id_user }-${uuid.v1()}.${fileExtention}`;
 

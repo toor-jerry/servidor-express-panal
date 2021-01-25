@@ -1,10 +1,12 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require('mongoose-unique-validator');
+const sanitizer = require('mongoose-sanitize');
+const uuid = require('uuid');
 
 const Schema = mongoose.Schema;
 
 const rolesValids = {
-    values: ['ADMIN_ROLE', 'USER_ROLE', 'ENTERPRISE_ROLE'],
+    values: ['ADMIN_ROLE', 'USER_ROLE', 'USER_PLATINO_ROLE', 'ENTERPRISE_ROLE'],
     message: '{VALUE} not role valid!!'
 };
 
@@ -37,7 +39,11 @@ const userSchema = new Schema({
         enum: rolesValids
     },
     domicile: {
-        type: String
+        street: String,
+        number: Number,
+        colony: String,
+        municipality: String,
+        country: String
     },
     nacionality: {
         type: String
@@ -131,10 +137,18 @@ const userSchema = new Schema({
     }],
     conversations: [{
         type: Schema.Types.ObjectId,
-        ref: 'Chat'
-    }]
+        ref: 'Room'
+    }],
+    notifications: [{
+        type: Object
+    }],
+    seed: {
+        type: String,
+        default: uuid.v1()
+    }
 });
 
+userSchema.plugin(sanitizer);
 userSchema.plugin(uniqueValidator, {
     message: 'La propiedad {PATH} debe ser única!!'
 });
@@ -143,6 +157,7 @@ userSchema.methods.toJSON = function() {
     let usuario = this;
     let userObj = usuario.toObject();
     delete userObj.password;
+    delete userObj.seed;
     return userObj;
 }
 

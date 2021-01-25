@@ -8,10 +8,10 @@ class Answer {
         AnswerModel.find({})
             .skip(from)
             .limit(limit)
-            .populate('user', 'name user role email thumbnail_photography')
+            .populate('user', 'name last_name user role email thumbnail_photography')
             .populate({
                 path: 'question',
-                populate: { path: 'user', select: 'name user role email thumbnail_photography' }
+                populate: { path: 'user', select: 'name user last_name role email thumbnail_photography' }
             })
             .exec((err, answers) => {
 
@@ -35,6 +35,7 @@ class Answer {
     static findById(res, id) {
 
         AnswerModel.findById(id)
+            .populate('user', 'name last_name user role email thumbnail_photography')
             .exec((err, answer) => {
 
                 if (err) return response500(res, err);
@@ -50,7 +51,7 @@ class Answer {
         AnswerModel.find({ question: question })
             .skip(from)
             .limit(limit)
-            .populate('user', 'name user role email thumbnail_photography')
+            .populate('user', 'name last_name user role email thumbnail_photography')
             .exec((err, answers) => {
 
                 if (err) return response500(res, err);
@@ -119,16 +120,23 @@ class Answer {
         return new Promise((resolve, reject) => {
 
             AnswerModel.find({}, 'answer createAt')
-                .and([{ 'answer': regex }])
+                ([{ 'answer': regex }])
                 .skip(from)
                 .limit(limit)
                 .exec((err, answers) => {
-
                     if (err) reject('Error at find question.', err);
-                    else resolve(answers);
+                    AnswerModel.countDocuments({})
+                        .and([{ 'answer': regex }])
+                        .exec((err, total) => {
+                            if (err) reject('Error at find question.', err);
+                            else resolve({
+                                data: answers,
+                                total
+                            });
+                        });
                 });
         });
-    };
+    }
 }
 
 

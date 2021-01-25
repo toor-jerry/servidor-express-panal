@@ -34,6 +34,118 @@ class Postulation {
             });
     }
 
+    static findByEmployments(res, user, from, limit) {
+
+        PostulationModel.find({ user: user })
+            .skip(from)
+            .limit(limit)
+            .populate({
+                path: 'employment',
+                populate: { path: 'user', select: 'name user role email thumbnail_photography' }
+            })
+            .exec((err, postulations) => {
+                if (err) return response500(res, err);
+
+                let postulationsTmp = [];
+                _.filter(postulations, (post) => {
+                    if (post.employment.type === 'JOB_OFFER') {
+                        postulationsTmp.push(post.employment)
+                    }
+                });
+                res.status(200).json({
+                    ok: true,
+                    data: postulationsTmp,
+                    total: postulationsTmp.length
+                });
+
+            });
+
+    }
+
+    static findBySocietyService(res, user, from, limit) {
+
+        PostulationModel.find({ user: user })
+            .populate({
+                path: 'employment',
+                populate: { path: 'user', select: 'name user role email thumbnail_photography' }
+            })
+            .exec((err, postulations) => {
+                if (err) return response500(res, err);
+
+                let postulationsTmp = [];
+                _.filter(postulations, (post) => {
+                    if (post.employment.type === 'SOCIETY_SERVICE') {
+                        postulationsTmp.push(post.employment)
+                    }
+                });
+                res.status(200).json({
+                    ok: true,
+                    data: postulationsTmp,
+                    total: postulationsTmp.length
+                });
+
+            });
+
+    }
+
+    static findByProfessionalService(res, user, from, limit) {
+
+        PostulationModel.find({ user: user })
+            .populate({
+                path: 'employment',
+                populate: { path: 'user', select: 'name user role email thumbnail_photography' }
+            })
+            .exec((err, postulations) => {
+                if (err) return response500(res, err);
+
+                let postulationsTmp = [];
+                _.filter(postulations, (post) => {
+                    if (post.employment.type === 'PROFESSIONAL_PRACTICES') {
+                        postulationsTmp.push(post.employment)
+                    }
+                });
+                res.status(200).json({
+                    ok: true,
+                    data: postulationsTmp,
+                    total: postulationsTmp.length
+                });
+
+            });
+
+    }
+
+    static findAllByUser(res, user, from, limit) {
+
+        PostulationModel.find({ user: user })
+            .skip(from)
+            .limit(limit)
+            .populate({
+                path: 'employment',
+                populate: { path: 'user', select: 'name user role email thumbnail_photography' }
+            })
+            .exec((err, postulations) => {
+
+                if (err) return response500(res, err);
+
+                PostulationModel.countDocuments((err, count) => {
+
+                    if (err) return response500(res, err);
+                    let postulationsTmp = [];
+                    _.filter(postulations, (post) => {
+                        postulationsTmp.push(post.employment)
+                    });
+                    res.status(200).json({
+                        ok: true,
+                        data: postulationsTmp,
+                        total: count
+                    });
+
+                });
+
+            });
+    }
+
+
     static findById(res, id) {
 
         PostulationModel.findById(id)

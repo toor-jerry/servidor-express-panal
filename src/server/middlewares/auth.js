@@ -1,37 +1,64 @@
 const jwt = require('jsonwebtoken');
 const { response401, response500 } = require('../utils/utils');
 const RoomModel = require('../models/room');
+const UserModel = require('../models/user');
 
 // ==========================
 // Verif token - Headers and url
 // ==========================
-
 const checkToken = (req, res, next) => {
 
     const token = req.get('Authorization') || req.query.Authorization;
 
-    jwt.verify(token, process.env.SEED, (err, decoded) => {
+    const payload = jwt.decode(token);
+    if (!payload) {
+        return response401(res, 'Token invalid!!');
+    }
+    UserModel.findById(payload.user._id, 'seed', (err, user) => {
 
-        if (err) return response401(res, 'Token invalid!!');
+        if (err) return response500(res, err);
 
-        req.user = decoded.user;
-        next();
+        jwt.verify(token, process.env.SEED + user.seed, (err, decoded) => {
+
+            if (err) return response401(res, 'Token invalid!!');
+
+            req.user = decoded.user;
+            next();
+        });
     });
 }
 
+// ==========================
+// Verif USER_PLATINO_ROLE
+// ==========================
+const checkUser_Platino_Role = (req, res, next) => {
 
-// ==========================
-// Verif ENTERPRISE_ROLE
-// ==========================
+    const user = req.user;
+
+    if (req.user.role == 'USER_PLATINO_ROLE' || user.role === 'ADMIN_ROLE') {
+        next();
+    } else {
+        return response401(res);
+    }
+}
+
 
 const checkEnterprise_Role = (req, res, next) => {
 
     const user = req.user;
+    // if (user.role !== 'ENTERPRISE_ROLE') {
+    //     return response401(res);
+    // }
 
-    if ((user.role === 'ENTERPRISE_ROLE' && user._id === req.params.id) || user.role === 'ADMIN_ROLE')
+    if (req.params.id || req.query.id) {
+        if (user._id === req.params.id || user.role == 'ENTERPRISE_ROLE' || user.role === 'ADMIN_ROLE') {
+            next();
+        } else {
+            return response401(res);
+        }
+    } else {
         next();
-    else
-        return response401(res);
+    }
 }
 
 // ==========================
@@ -53,9 +80,15 @@ const checkAdmin_Role = (req, res, next) => {
 const checkPrivileges = (req, res, next) => {
 
     const user = req.user;
-    if ((user._id === req.params.id) || (user._id === req.query.id) || (user.role === 'ADMIN_ROLE'))
+    if (req.params.id || req.query.id) {
+        if ((user._id === req.params.id) || (user._id === req.query.id) || (user.role === 'ADMIN_ROLE')) {
+            next();
+        } else {
+            return response401(res);
+        }
+    } else {
         next();
-    else return response401(res);
+    }
 }
 
 // ==========================
@@ -63,7 +96,7 @@ const checkPrivileges = (req, res, next) => {
 // ==========================
 const checkParticipantOnRoom = (req, res, next) => {
 
-    let id = req.params.room || req.body.room;
+    let id = req.params.room || req.query.room || req.body.room;
 
     const user = req.user._id;
     RoomModel.findOne({ _id: id, $or: [{ admins: { $in: user } }, { participants: { $in: user } }] }, (err, room) => {
@@ -92,5 +125,6 @@ module.exports = {
     checkAdmin_Role,
     checkPrivileges,
     checkParticipantOnRoom,
-    checkPrivilegesOnRoom
+    checkPrivilegesOnRoom,
+    checkUser_Platino_Role
 }

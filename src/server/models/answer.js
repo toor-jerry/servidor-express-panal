@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require('mongoose-unique-validator');
+const sanitizer = require('mongoose-sanitize');
 
 const Schema = mongoose.Schema;
 
@@ -23,6 +24,6 @@ const answerSchema = new Schema({
         default: Date.now
     }
 });
-
+answerSchema.plugin(sanitizer);
 answerSchema.plugin(uniqueValidator, { message: 'La propiedad "{PATH} debe ser única!!' });
 module.exports = mongoose.model("Answer", answerSchema);

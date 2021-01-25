@@ -46,8 +46,8 @@ app.put('/:id_question', [checkToken, checkPrivileges], (req, res) =>
 // ==========================
 // Delete question
 // ==========================
-app.delete('/:id', [checkToken, checkPrivileges], (req, res) =>
-    Question.delete(res, req.params.id, req.user._id)
+app.delete('/:question', [checkToken, checkPrivileges], (req, res) =>
+    Question.delete(res, req.params.question, req.user._id)
 );
 
 module.exports = app;

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
-const uniqueValidator = require('mongoose-unique-validator');;
+const uniqueValidator = require('mongoose-unique-validator');
+const sanitizer = require('mongoose-sanitize');
 
 const Schema = mongoose.Schema;
 
@@ -16,5 +17,6 @@ const postulationSchema = new Schema({
     }
 });
 
+postulationSchema.plugin(sanitizer);
 postulationSchema.plugin(uniqueValidator, { message: 'La propiedad "{PATH} debe ser única!!' });
 module.exports = mongoose.model("Postulation", postulationSchema);

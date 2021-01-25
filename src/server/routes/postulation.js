@@ -19,6 +19,54 @@ app.get('/', [checkToken, checkAdmin_Role], (req, res) => {
 });
 
 // ==========================
+// Get all by user
+// ==========================
+app.get('/all-by-user', checkToken, (req, res) => {
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Postulation.findAllByUser(res, req.user._id, from, limit);
+
+});
+
+// ==========================
+// Get all to employment by user
+// ==========================
+app.get('/all-by-user/employments', checkToken, (req, res) => {
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Postulation.findByEmployments(res, req.user._id, from, limit);
+
+});
+
+// ==========================
+// Get all to society service by user
+// ==========================
+app.get('/all-by-user/social-service', checkToken, (req, res) => {
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Postulation.findBySocietyService(res, req.user._id, from, limit);
+
+});
+
+// ==========================
+// Get all to professional practice by user
+// ==========================
+app.get('/all-by-user/professional-practice', checkToken, (req, res) => {
+
+    const from = Number(req.query.from) || 0;
+    const limit = Number(req.query.limit) || 10;
+
+    Postulation.findByProfessionalService(res, req.user._id, from, limit);
+
+});
+
+// ==========================
 // Get postulation by id
 // ==========================
 app.get('/:postulation', checkToken, (req, res) => Postulation.findById(res, req.params.postulation));

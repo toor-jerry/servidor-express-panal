@@ -1,4 +1,5 @@
 const MessageModel = require('../models/message');
+const AnswerModel = require('../models/answer');
 const { Upload } = require('../classes/upload');
 
 const { response500, response400, response200, response201 } = require('../utils/utils');
@@ -6,29 +7,30 @@ const { response500, response400, response200, response201 } = require('../utils
 
 class Message {
 
-    static findAll(res, room, from, limit) {
+    static findAll(room, from, limit) {
+        return new Promise((resolve, reject) => {
 
-        MessageModel.find({ room: room })
-            .skip(from)
-            .limit(limit)
-            .populate('sender', 'name user thumbnail_photography')
-            .exec((err, messages) => {
+            MessageModel.find({ room: room })
+                .skip(from)
+                .limit(limit)
+                .sort({ 'date': -1 })
+                .populate('sender', 'name user thumbnail_photography')
+                .exec((err, messages) => {
 
-                if (err) return response500(res, err);
+                    if (err) return reject({ code: 500, err });
 
-                MessageModel.countDocuments({ room: room }, (err, count) => {
+                    MessageModel.countDocuments({ room: room }, (err, count) => {
 
-                    if (err) return response500(res, err);
+                        if (err) return reject({ code: 500, err });
 
-                    res.status(200).json({
-                        ok: true,
-                        data: messages,
-                        total: count
+                        resolve({
+                            messages,
+                            total: count
+                        });
+
                     });
-
                 });
-
-            });
+        });
     }
 
     static findById(res, room, id) {
@@ -44,50 +46,69 @@ class Message {
             });
     }
 
-    static create(res, data) {
+    static create(data) {
+        return new Promise((resolve, reject) => {
+            if (!data.message)
+                return reject({ code: 400, err: 'No message.' });
 
-        let message = new MessageModel(data);
-        message.save((err, messageCreated) => {
+            let message = new MessageModel(data);
+            message.save((err, messageCreated) => {
 
-            if (err) return response500(res, err);
-            if (!messageCreated) return response400(res, 'Could not create the message.');
+                if (err) return reject({ code: 500, err });
 
-            response201(res, messageCreated);
+                if (!messageCreated) return reject({ code: 400, err: 'Could not create the message.' });
+
+                resolve({ data: messageCreated });
+            });
         });
-
     }
 
-    static delete(res, room, sender, id) {
+    static delete(room, sender, id) {
 
-        MessageModel.findOneAndRemove({ room: room, sender: sender, _id: id }, (err, messageDeleted) => {
+        return new Promise((resolve, reject) => {
 
-            if (err) return response500(res, err);
-            if (!messageDeleted) return response400(res, 'Could not delete the message.');
+            if (!room)
+                return reject({ code: 400, err: 'No room.' });
 
-            if (messageDeleted.type === 'IMG' || messageDeleted.type === 'FILE') {
+            if (!id)
+                return reject({ code: 400, err: 'No message.' });
 
-                let upload = new Upload();
-                upload.deleteFile('messages', messageDeleted.message);
-            }
+            MessageModel.findOneAndRemove({ room: room, sender: sender, _id: id }, (err, messageDeleted) => {
 
-            return response200(res, messageDeleted);
+                if (err) return reject({ code: 500, err });
+                if (!messageDeleted) return response400({ code: 500, msg: 'Could not delete the message.' });
+
+                if (messageDeleted.type === 'IMG' || messageDeleted.type === 'FILE') {
+
+                    let upload = new Upload();
+                    upload.deleteFile('messages', messageDeleted.message);
+                }
+
+                resolve({ data: messageDeleted });
+            });
         });
-
     }
 
     static searchMessages = (room, regex, from = 0, limit = 10) => {
 
         return new Promise((resolve, reject) => {
 
-            MessageModel.find({ room: room }, 'message date')
-                .and({ 'message': regex })
+            MessageModel.find({ room: room })
+                .or([{ 'message': regex }, { 'fileName': regex }])
                 .skip(from)
                 .limit(limit)
+                .populate('sender', '_id name last_name user email thumbnail_photography')
                 .exec((err, messages) => {
-
                     if (err) reject(`Could not found ${regex} in messages.`, err);
-                    else resolve(messages);
-
+                    MessageModel.countDocuments({ room: room })
+                        .or([{ 'message': regex }, { 'fileName': regex }])
+                        .exec((err, total) => {
+                            if (err) reject(`Could not found ${regex} in messages.`, err);
+                            else resolve({
+                                data: messages,
+                                total
+                            });
+                        });
                 });
         });
     };

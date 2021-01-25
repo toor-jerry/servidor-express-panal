@@ -33,7 +33,6 @@ class Upload {
             user.save((err, userUpdated) => {
 
                 if (err) return response500(res, err);
-
                 res.status(201).json({
                     ok: true,
                     data: {
@@ -41,7 +40,6 @@ class Upload {
                         thumbnail_photography: userUpdated.thumbnail_photography
                     }
                 });
-
             });
 
         });
@@ -171,6 +169,36 @@ class Upload {
             })
             .toFile(`./uploads/${dirName}/${fileName}`)
             .catch(err => console.log('Err ' + err));
+    }
+
+    // ==========================
+    // Assets
+    // ==========================
+    static uploadAssetImg(res, img, nameFile, resize = false) {
+        let pathOld = path.resolve(__dirname, `../../public/assets/${nameFile}`);
+        if (fs.existsSync(pathOld)) {
+            fs.unlinkSync(pathOld);
+        }
+        if (resize) {
+            sharp(img)
+                .resize({ width: SIZE_CHAT_PHOTOGRAPHY })
+                .toFile(`./src/public/assets/${nameFile}`)
+                .then(() => response201(res, nameFile))
+                .catch(err => response500(res, err));
+        } else {
+            sharp(img)
+                .toFile(`./src/public/assets/${nameFile}`)
+                .then(() => response201(res, nameFile))
+                .catch(err => response500(res, err));
+        }
+    }
+
+    static deleteAssetImg(res, nameFile) {
+        let pathOld = path.resolve(__dirname, `../../public/assets/${nameFile}`);
+        if (fs.existsSync(pathOld)) {
+            fs.unlinkSync(pathOld);
+        }
+        response200(res, nameFile);
     }
 
 }
